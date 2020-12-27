@@ -228,12 +228,14 @@ void XF_setTextColor(uint32_t color) {
 }
 
 void XF_DrawText(int x, int y, const char *text, int size, int max_width, XF_FontBDF *font) {
+    int start_x = x;
+
     int next_word = 0;
     for(int i = 0; i < size && text[i] != 0; ++i) {
         if(i == next_word && i < size - 1) { // check if word has to be moved to another line
             // search for the next word
             int s = i + 1;
-            while(true) { if(text[s] == ' ' || s == size - 1) break; s++; }
+            while(true) { if(text[s] == 0 || text[s] == ' ' || s == size - 1) break; s++; }
             
             if(x + ((s - i) * font->fbbw) >= max_width) { // don't count space for render
                 x = 0;
@@ -246,6 +248,11 @@ void XF_DrawText(int x, int y, const char *text, int size, int max_width, XF_Fon
                 x = 0;
                 y += font->fbbh;
             } else continue; // just don't render space if it doesn't fit the line, instead of moving it to another line
+        } else if(text[i] == '\n') { // make \n function
+            x = start_x;
+            y += font->fbbh;
+
+            continue;
         }
 
         render_char(&x, &y, text[i], font, text_color); 

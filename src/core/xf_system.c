@@ -89,7 +89,7 @@ boolean XF_Initialize(int width, int height) {
     XSetWindowAttributes x_window_attr;
     x_window_attr.background_pixel = XBlackPixel(x_display, x_screen);
     x_window_attr.border_pixel = XWhitePixel(x_display, x_screen);
-    x_window_attr.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+    x_window_attr.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ButtonMotionMask;
 
     XF_WriteLog(XF_LOG_INFO, "Creating window...\n");
     x_window = XCreateWindow(x_display, // display
@@ -202,6 +202,9 @@ int XF_GetWindowHeight() { return WINDOW_HEIGHT; }
 
 boolean XF_WindowShouldClose() { return x_window_close; }
 
+int recent_button = 0; // stores pressed button for the motion event (for some reason
+                        // motion event doesn't know what button is pressed, always contains 0)
+
 boolean XF_GetEvent(XF_Event* pevent) {
     int pending = XPending(x_display);
 
@@ -231,6 +234,26 @@ boolean XF_GetEvent(XF_Event* pevent) {
 
                 pevent->type = XF_EVENT_KEY_RELEASED;
                 pevent->key.code = sym;
+                break;
+            case ButtonPress:
+                pevent->type = XF_EVENT_MOUSE_PRESSED;
+                pevent->mouse.x = x_event.xbutton.x;
+                pevent->mouse.y = x_event.xbutton.y;
+                pevent->mouse.button = x_event.xbutton.button;
+                recent_button = x_event.xbutton.button;
+                break;
+            case ButtonRelease:
+                pevent->type = XF_EVENT_MOUSE_RELEASED;
+                pevent->mouse.x = x_event.xbutton.x;
+                pevent->mouse.y = x_event.xbutton.y;
+                pevent->mouse.button = x_event.xbutton.button;
+                recent_button = 0;
+                break;
+            case MotionNotify:
+                pevent->type = XF_EVENT_MOUSE_MOVED;
+                pevent->mouse.x = x_event.xbutton.x;
+                pevent->mouse.y = x_event.xbutton.y;
+                pevent->mouse.button = recent_button;
                 break;
             case ClientMessage:
                 if(x_event.xclient.data.l[0] == wm_delete_window)

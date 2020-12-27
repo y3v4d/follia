@@ -2,23 +2,9 @@
 #define xf_system_h
 
 #include "xf_utils.h"
+#include "xf_event.h"
 
 #include <stdint.h>
-
-#define XF_EVENT_KEY_PRESSED 0x00
-#define XF_EVENT_KEY_RELEASED 0x01
-
-typedef struct _XF_KeyEvent {
-    char code;
-} XF_KeyEvent;
-
-typedef struct _XF_Event {
-    uint8_t type;
-
-    union {
-        XF_KeyEvent key;
-    };
-} XF_Event;
 
 boolean XF_Initialize(int width, int height); // only software renderer
 void XF_Close();
