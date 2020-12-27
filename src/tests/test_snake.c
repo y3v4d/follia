@@ -1,6 +1,6 @@
 #include "test_snake.h"
 
-#include "../core/xf_system.h"
+#include "../x11framework.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -26,14 +26,6 @@ void test_snake() {
 
     if(!XF_Initialize(640, 480))
         exit(-1);
-
-    XF_Texture *background_spr = XF_LoadBMP("data/b_test.bmp");
-    XF_Texture *apple_spr = XF_LoadBMP("data/apple.bmp");
-    XF_Texture *snake_spr = XF_LoadBMP("data/snake.bmp");
-    if(!apple_spr || !snake_spr || !background_spr) {
-        XF_Close();
-        exit(-1); 
-    }
 
     XF_FontBDF *knxt_font = XF_LoadFontBDF("data/fonts/knxt.bdf");
     if(!knxt_font) {
@@ -143,9 +135,5 @@ void test_snake() {
 
     XF_FreeFontBDF(knxt_font);
  
-    XF_FreeTexture(background_spr);
-    XF_FreeTexture(apple_spr);
-    XF_FreeTexture(snake_spr);
-
     XF_Close();
 }

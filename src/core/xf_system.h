@@ -2,10 +2,6 @@
 #define xf_system_h
 
 #include "xf_utils.h"
-#include "xf_log.h"
-#include "xf_key.h"
-#include "xf_font.h"
-#include "xf_texture.h"
 
 #include <stdint.h>
 
@@ -38,8 +34,8 @@ double XF_GetDeltaTime();
 
 void XF_ClearScreen();
 void XF_DrawPoint(int x, int y, uint32_t color);
-void XF_DrawLine(int x1, int y1, int x2, int y2, uint32_t color);
-void XF_DrawRect(int x, int y, int w, int h, uint32_t color, boolean outline);
+void XF_DrawLine(int x1, int y1, int x2, int y2, uint32_t color); // to upgrade
+void XF_DrawRect(int x, int y, int w, int h, uint32_t color, boolean outline); // to upgrade
 void XF_Render();
 
 #endif

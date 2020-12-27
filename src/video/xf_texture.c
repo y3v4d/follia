@@ -1,6 +1,6 @@
 #include "xf_texture.h"
-#include "xf_log.h"
-#include "xf_system.h"
+#include "../core/xf_log.h"
+#include "../core/xf_system.h"
 
 #include <stdio.h>
 #include <stdlib.h>

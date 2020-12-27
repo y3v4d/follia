@@ -1,4 +1,5 @@
 #include "xf_system.h"
+#include "xf_log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,12 +19,12 @@
 short WINDOW_WIDTH = 100, WINDOW_HEIGHT = 100;
 
 // linux specific
-Display *display = NULL;
-int screen = 0;
-Window window;
-GC gc;
-Visual *visual = NULL;
-XEvent event;
+Display *x_display = NULL;
+int x_screen = 0;
+Window x_window;
+GC x_gc;
+Visual *x_visual = NULL;
+XEvent x_event;
 
 XImage *x_buffer = NULL;
 uint32_t **h_lines = NULL;
@@ -34,7 +35,7 @@ boolean shm_complete = false; // determinate if the shm finished its job
 
 Atom wm_delete_window;
 
-boolean window_close = false; // determinate if window should be closed
+boolean x_window_close = false; // determinate if window should be closed
 
 int x_error_handler(Display *display, XErrorEvent *event) {
     char msg[256];
@@ -56,14 +57,14 @@ boolean XF_Initialize(int width, int height) {
 
     XF_WriteLog(XF_LOG_INFO, "Initializing XF system...\n");
 
-    display = XOpenDisplay(NULL);
-    if(!display) {
+    x_display = XOpenDisplay(NULL);
+    if(!x_display) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't open display\n"); 
         return false;
     }
     XF_WriteLog(XF_LOG_INFO, "Successfully opened display\n");
-    char *display_name = XDisplayString(display);
-    XF_WriteLog(XF_LOG_INFO, "Display %s X version %d.%d\n", display_name, XProtocolVersion(display), XProtocolRevision(display));
+    char *x_display_name = XDisplayString(x_display);
+    XF_WriteLog(XF_LOG_INFO, "Display %s X version %d.%d\n", x_display_name, XProtocolVersion(x_display), XProtocolRevision(x_display));
 
     XSetErrorHandler(x_error_handler);
 
@@ -75,39 +76,39 @@ boolean XF_Initialize(int width, int height) {
     } else XF_WriteLog(XF_LOG_INFO, "Found version %d.%d of XKB extension\n", xkb_major_version, xkb_minor_version);
     
     int xkb_opcode, xkb_event, xkb_error;
-    if(!XkbQueryExtension(display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major_version, &xkb_minor_version)) {
+    if(!XkbQueryExtension(x_display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major_version, &xkb_minor_version)) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't query XKB extension!\n");
-        XCloseDisplay(display);
+        XCloseDisplay(x_display);
 
         return false;
     } else XF_WriteLog(XF_LOG_INFO, "Successfuly queried XKB extension\n");
     
-    screen = XDefaultScreen(display);
-    visual = XDefaultVisual(display, screen);
+    x_screen = XDefaultScreen(x_display);
+    x_visual = XDefaultVisual(x_display, x_screen);
 
-    XSetWindowAttributes window_attr;
-    window_attr.background_pixel = XBlackPixel(display, screen);
-    window_attr.border_pixel = XWhitePixel(display, screen);
-    window_attr.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+    XSetWindowAttributes x_window_attr;
+    x_window_attr.background_pixel = XBlackPixel(x_display, x_screen);
+    x_window_attr.border_pixel = XWhitePixel(x_display, x_screen);
+    x_window_attr.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
 
     XF_WriteLog(XF_LOG_INFO, "Creating window...\n");
-    window = XCreateWindow(display, // display
-                           XRootWindow(display, screen), // parent window
+    x_window = XCreateWindow(x_display, // display
+                           XRootWindow(x_display, x_screen), // parent window
                            0, 0, // x, y coordinates
                            WINDOW_WIDTH, WINDOW_HEIGHT, // width, height
                            0, // border width
-                           XDefaultDepth(display, screen), // depth
+                           XDefaultDepth(x_display, x_screen), // depth
                            InputOutput, // class
-                           visual, // visual
+                           x_visual, // visual
                            CWBackPixel | CWBorderPixel | CWEventMask, // attributes mask
-                           &window_attr); // attributes
+                           &x_window_attr); // attributes
 
     // WM_CLASS
     XClassHint *class_hint = XAllocClassHint();
     if(class_hint) {
         class_hint->res_class = "C-app";
         class_hint->res_name = "Follia";
-        XSetClassHint(display, window, class_hint);
+        XSetClassHint(x_display, x_window, class_hint);
 
         XFree(class_hint);
     } else XF_WriteLog(XF_LOG_WARNING, "Couldn't allocate memory for WM_CLASS value");
@@ -117,27 +118,27 @@ boolean XF_Initialize(int width, int height) {
     XTextProperty wm_text_property;
 
     XStringListToTextProperty(&wm_name_string, 1, &wm_text_property);
-    XSetWMName(display, window, &wm_text_property);
+    XSetWMName(x_display, x_window, &wm_text_property);
 
     XFree(wm_text_property.value);
 
     // WM_DELETE
-    wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", False);
-    XSetWMProtocols(display, window, &wm_delete_window, 1);
+    wm_delete_window = XInternAtom(x_display, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols(x_display, x_window, &wm_delete_window, 1);
 
     XF_WriteLog(XF_LOG_INFO, "Successfully created window\n");
 
     XF_WriteLog(XF_LOG_INFO, "Creating graphics context...\n");
-    XGCValues gc_values;
-    gc = XCreateGC(display, window, 0, &gc_values);
+    XGCValues x_gc_values;
+    x_gc = XCreateGC(x_display, x_window, 0, &x_gc_values);
     XF_WriteLog(XF_LOG_INFO, "Successfully created graphics context\n");
 
-    if(!XShmQueryExtension(display)) {
+    if(!XShmQueryExtension(x_display)) {
         XF_WriteLog(XF_LOG_ERROR, "System doesn't support shared-memory extension!\n");
         return false;
     }
 
-    x_buffer = XShmCreateImage(display, visual, XDefaultDepth(display, screen), ZPixmap, NULL, &shm_info, WINDOW_WIDTH, WINDOW_HEIGHT);
+    x_buffer = XShmCreateImage(x_display, x_visual, XDefaultDepth(x_display, x_screen), ZPixmap, NULL, &shm_info, WINDOW_WIDTH, WINDOW_HEIGHT);
     if(!x_buffer) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for shared-memory x_buffer!\n");
         return false;
@@ -157,85 +158,85 @@ boolean XF_Initialize(int width, int height) {
 
     shm_info.readOnly = False;
 
-    if(!XShmAttach(display, &shm_info)) {
+    if(!XShmAttach(x_display, &shm_info)) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't attach server to shared-memory segment!\n");
         return false;
     }
 
-    x_shm_completion = XShmGetEventBase(display) + ShmCompletion;
+    x_shm_completion = XShmGetEventBase(x_display) + ShmCompletion;
 
     h_lines = (uint32_t**)malloc(WINDOW_HEIGHT * sizeof(uint32_t*));
     for(int i = 0; i < WINDOW_HEIGHT; ++i) {
         h_lines[i] = (uint32_t*)&x_buffer->data[i * WINDOW_WIDTH * 4];
     }
 
-    XMapWindow(display, window);
+    XMapWindow(x_display, x_window);
 
-    XAutoRepeatOff(display);
+    XAutoRepeatOff(x_display);
 
     return true;
 }
 
 void XF_Close() {
-    XAutoRepeatOn(display);
+    XAutoRepeatOn(x_display);
 
-    XShmDetach(display, &shm_info);
+    XShmDetach(x_display, &shm_info);
     XDestroyImage(x_buffer);
     if(shmdt(shm_info.shmaddr) == -1)
         XF_WriteLog(XF_LOG_ERROR, "Couldn't detach shared memory from the calling process!\n");
 
-    XSync(display, True);
+    XSync(x_display, True);
     
     if(shmctl(shm_info.shmid, IPC_RMID, 0) == -1)
         XF_WriteLog(XF_LOG_ERROR, "Couldn't mark segment to be destroyed!\n");
 
     free(h_lines);
 
-    XFreeGC(display, gc);
-    XDestroyWindow(display, window); 
-    XCloseDisplay(display);
+    XFreeGC(x_display, x_gc);
+    XDestroyWindow(x_display, x_window); 
+    XCloseDisplay(x_display);
 }
 
 int XF_GetWindowWidth() { return WINDOW_WIDTH; }
 int XF_GetWindowHeight() { return WINDOW_HEIGHT; }
 
-boolean XF_WindowShouldClose() { return window_close; }
+boolean XF_WindowShouldClose() { return x_window_close; }
 
 boolean XF_GetEvent(XF_Event* pevent) {
-    int pending = XPending(display);
+    int pending = XPending(x_display);
 
     if(pending) {
-        XNextEvent(display, &event);
+        XNextEvent(x_display, &x_event);
 
         uint8_t sym = 0;
         int mask = 0;
-        switch(event.type) {
+        switch(x_event.type) {
             case KeyPress:
                 // I don't know if there's a better way to handle CapsLock in X11 with my current key-obtaining method
-                if((event.xkey.state & LockMask) == 2) {
-                    mask = 1 - (event.xkey.state & ShiftMask);
-                } else mask = event.xkey.state & ShiftMask;
+                if((x_event.xkey.state & LockMask) == 2) {
+                    mask = 1 - (x_event.xkey.state & ShiftMask);
+                } else mask = x_event.xkey.state & ShiftMask;
 
-                sym = XkbKeycodeToKeysym(display, event.xkey.keycode, 0, mask);
+                sym = XkbKeycodeToKeysym(x_display, x_event.xkey.keycode, 0, mask);
 
                 pevent->type = XF_EVENT_KEY_PRESSED;
                 pevent->key.code = sym;
                 break;
             case KeyRelease:
-                if((event.xkey.state & LockMask) == 2) {
-                    mask = 1 - (event.xkey.state & ShiftMask);
-                } else mask = event.xkey.state & ShiftMask;
+                if((x_event.xkey.state & LockMask) == 2) {
+                    mask = 1 - (x_event.xkey.state & ShiftMask);
+                } else mask = x_event.xkey.state & ShiftMask;
                
-                sym = XkbKeycodeToKeysym(display, event.xkey.keycode, 0, mask);
+                sym = XkbKeycodeToKeysym(x_display, x_event.xkey.keycode, 0, mask);
 
                 pevent->type = XF_EVENT_KEY_RELEASED;
                 pevent->key.code = sym;
                 break;
             case ClientMessage:
-                if(event.xclient.data.l[0] == wm_delete_window)
-                    window_close = true;
+                if(x_event.xclient.data.l[0] == wm_delete_window)
+                    x_window_close = true;
                 break;
-            default: if(event.type == x_shm_completion) shm_complete = true; break;
+            default: if(x_event.type == x_shm_completion) shm_complete = true; break;
         }
     }
 
@@ -319,69 +320,9 @@ Bool check_for_shm_proc(Display* display, XEvent* event, XPointer arg) {
 }
 
 void XF_Render() {
-#if 0 // end up don't using this (very slow)
-    if(PIXEL_W == 2) {
-        uint32_t *p = (uint32_t*)&x_screen[0];
-        uint32_t *s[2];
+    XShmPutImage(x_display, x_window, x_gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);
 
-        for(int i = 0; i < 2; ++i) {
-            s[i] = (uint32_t*)&image->data[i * WINDOW_WIDTH * PIXEL_W * 4];
-        }
-
-        int y = WINDOW_HEIGHT;
-        
-        while(y--) {
-            int x = WINDOW_WIDTH;
-
-            while(x--) {
-                *(s[0]++) = *p;
-                *(s[1]++) = *p;
-                *(s[0]++) = *p;
-                *(s[1]++) = *p; 
-
-                p++;
-            }
-
-            s[0] += WINDOW_WIDTH * PIXEL_W;
-            s[1] += WINDOW_WIDTH * PIXEL_W;
-        }
-    } else if(PIXEL_W == 3) {
-        uint32_t *p = (uint32_t*)&x_screen[0];
-        uint32_t *s[3];
-
-        for(int i = 0; i < 3; ++i) {
-            s[i] = (uint32_t*)&image->data[i * WINDOW_WIDTH * PIXEL_W * 4];
-        }
-
-        int y = WINDOW_HEIGHT;
-
-        while(y--) {
-            int x = WINDOW_WIDTH;
-
-            while(x--) {
-                *(s[0]++) = *p;
-                *(s[1]++) = *p;
-                *(s[2]++) = *p;
-                *(s[0]++) = *p;
-                *(s[1]++) = *p;
-                *(s[2]++) = *p;
-                *(s[0]++) = *p;
-                *(s[1]++) = *p;
-                *(s[2]++) = *p;
-
-                p++;
-            }
-
-            s[0] += WINDOW_WIDTH * PIXEL_W * 2;
-            s[1] += WINDOW_WIDTH * PIXEL_W * 2;
-            s[2] += WINDOW_WIDTH * PIXEL_W * 2;
-        }
-    }
-#endif
-
-    XShmPutImage(display, window, gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);
-
-    while(!XCheckIfEvent(display, &event, check_for_shm_proc, NULL)) {}
+    while(!XCheckIfEvent(x_display, &x_event, check_for_shm_proc, NULL)) {}
     
     /*shm_complete = false;
     do {

@@ -2,7 +2,7 @@ CC := gcc
 CFLAGS := -Wall
 LIBS := -lm -lX11 -lXext 
 
-SRC := $(wildcard src/core/*.c)
+SRC := $(wildcard src/core/*.c src/video/*.c)
 OBJ := $(SRC:src/%.c=obj/%.o)
 
 SRC_TESTS := $(wildcard src/tests/*.c)
@@ -25,7 +25,7 @@ deploy: $(OBJ)
 
 clean:
 	@echo "Cleaning up..."
-	@rm -f obj/core/*.o obj/tests/*.o
+	@rm -f obj/core/*.o obj/tests/*.o obj/video/*.o
 	@rm -f bin/app bin/shared/libx11framework.so
 
 run:
