@@ -1,4 +1,4 @@
-#include "xf_sprite.h"
+#include "xf_texture.h"
 #include "xf_log.h"
 #include "xf_system.h"
 
@@ -12,8 +12,8 @@ uint32_t le32_to_cpu(uint8_t *n) {
 }
 
 // function loads only BMP files with compression BI_RGB24 and BGR format
-XF_Sprite* XF_LoadBMP(const char *path) {
-    XF_Sprite *temp = (XF_Sprite*)malloc(sizeof(XF_Sprite));
+XF_Texture* XF_LoadBMP(const char *path) {
+    XF_Texture *temp = (XF_Texture*)malloc(sizeof(XF_Texture));
     if(!temp) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for sprite!\n");
         return NULL;
@@ -92,7 +92,7 @@ XF_Sprite* XF_LoadBMP(const char *path) {
     return temp;
 }
 
-void XF_FreeSprite(XF_Sprite *o) {
+void XF_FreeTexture(XF_Texture *o) {
     if(!o) {
         XF_WriteLog(XF_LOG_WARNING, "Cannot free NULL sprite pointer\n");
         return;
@@ -104,7 +104,7 @@ void XF_FreeSprite(XF_Sprite *o) {
     o = NULL;
 }
 
-void XF_DrawSprite(const XF_Sprite *s, int x, int y) {
+void XF_DrawTexture(const XF_Texture *s, int x, int y) {
     uint32_t *coord = s->data;
 
     for(int ay = 0; ay < s->height; ++ay) {

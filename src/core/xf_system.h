@@ -5,7 +5,7 @@
 #include "xf_log.h"
 #include "xf_key.h"
 #include "xf_font.h"
-#include "xf_sprite.h"
+#include "xf_texture.h"
 
 #include <stdint.h>
 
