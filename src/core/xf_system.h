@@ -9,21 +9,32 @@
 
 #include <stdint.h>
 
+#define XF_EVENT_KEY_PRESSED 0x00
+#define XF_EVENT_KEY_RELEASED 0x01
+
+typedef struct _XF_KeyEvent {
+    char code;
+} XF_KeyEvent;
+
+typedef struct _XF_Event {
+    uint8_t type;
+
+    union {
+        XF_KeyEvent key;
+    };
+} XF_Event;
+
 boolean XF_Initialize(int width, int height); // only software renderer
 void XF_Close();
 
 boolean XF_WindowShouldClose();
 
-// convert it to more SDL like style, because it's more clear
-// then this (add events queue, to properly handle SHM event, not visible for user)
-int XF_ProcessEvents();
-boolean XF_isKeyPressed(uint8_t keycode);
-boolean XF_isKeyReleased(uint8_t keycode);
+boolean XF_GetEvent(XF_Event* event);
 
-int XF_getWindowWidth();
-int XF_getWindowHeight();
+int XF_GetWindowWidth();
+int XF_GetWindowHeight();
 
-double XF_getDeltaTime();
+double XF_GetDeltaTime();
 
 void XF_ClearScreen();
 void XF_DrawPoint(int x, int y, uint32_t color);

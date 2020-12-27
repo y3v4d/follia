@@ -34,10 +34,6 @@ boolean shm_complete = false; // determinate if the shm finished its job
 
 Atom wm_delete_window;
 
-// key states containers
-boolean key_pressed[255];
-boolean key_released[255];
-
 boolean window_close = false; // determinate if window should be closed
 
 int x_error_handler(Display *display, XErrorEvent *event) {
@@ -175,10 +171,6 @@ boolean XF_Initialize(int width, int height) {
 
     XMapWindow(display, window);
 
-    // set all keys to released
-    for(int i = 0; i < 255; ++i) key_pressed[i] = false;
-    for(int i = 0; i < 255; ++i) key_released[i] = false;
-
     XAutoRepeatOff(display);
 
     return true;
@@ -204,21 +196,14 @@ void XF_Close() {
     XCloseDisplay(display);
 }
 
-int XF_getWindowWidth() { return WINDOW_WIDTH; }
-int XF_getWindowHeight() { return WINDOW_HEIGHT; }
+int XF_GetWindowWidth() { return WINDOW_WIDTH; }
+int XF_GetWindowHeight() { return WINDOW_HEIGHT; }
 
 boolean XF_WindowShouldClose() { return window_close; }
 
-boolean XF_isKeyPressed(uint8_t keycode) {
-    return key_pressed[keycode];
-}
-
-boolean XF_isKeyReleased(uint8_t keycode) {
-    return key_released[keycode];
-}
-
-int XF_ProcessEvents() {
+boolean XF_GetEvent(XF_Event* pevent) {
     int pending = XPending(display);
+
     if(pending) {
         XNextEvent(display, &event);
 
@@ -232,8 +217,9 @@ int XF_ProcessEvents() {
                 } else mask = event.xkey.state & ShiftMask;
 
                 sym = XkbKeycodeToKeysym(display, event.xkey.keycode, 0, mask);
-                key_released[sym] = false;
-                key_pressed[sym] = true;
+
+                pevent->type = XF_EVENT_KEY_PRESSED;
+                pevent->key.code = sym;
                 break;
             case KeyRelease:
                 if((event.xkey.state & LockMask) == 2) {
@@ -241,8 +227,9 @@ int XF_ProcessEvents() {
                 } else mask = event.xkey.state & ShiftMask;
                
                 sym = XkbKeycodeToKeysym(display, event.xkey.keycode, 0, mask);
-                key_pressed[sym] = false;
-                key_released[sym] = true;
+
+                pevent->type = XF_EVENT_KEY_RELEASED;
+                pevent->key.code = sym;
                 break;
             case ClientMessage:
                 if(event.xclient.data.l[0] == wm_delete_window)
@@ -252,7 +239,7 @@ int XF_ProcessEvents() {
         }
     }
 
-    return pending;
+    return (pending != 0);
 }
 
 void XF_ClearScreen() {
@@ -327,6 +314,10 @@ void XF_DrawRect(int x, int y, int w, int h, uint32_t color, boolean outline) {
     }
 }
 
+Bool check_for_shm_proc(Display* display, XEvent* event, XPointer arg) {
+    return (event->type == x_shm_completion);
+}
+
 void XF_Render() {
 #if 0 // end up don't using this (very slow)
     if(PIXEL_W == 2) {
@@ -390,13 +381,10 @@ void XF_Render() {
 
     XShmPutImage(display, window, gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);
 
-    for(int i = 0; i < 255; ++i) {
-        key_pressed[i] = false;
-        key_released[i] = false;
-    }
+    while(!XCheckIfEvent(display, &event, check_for_shm_proc, NULL)) {}
     
-    shm_complete = false;
+    /*shm_complete = false;
     do {
         XF_ProcessEvents();
-    } while(!shm_complete);
+    } while(!shm_complete);*/
 }

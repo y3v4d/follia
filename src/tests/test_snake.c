@@ -60,13 +60,20 @@ void test_snake() {
     struct timespec ac_start, ac_end;
     double ac_delta_time;
 
+    XF_Event event;
+
     while(!XF_WindowShouldClose()) {
-        while(XF_ProcessEvents()) {}
-       
-        if(XF_isKeyPressed(XF_KEY_d)) direction = 0;
-        else if(XF_isKeyPressed(XF_KEY_a)) direction = 1;
-        else if(XF_isKeyPressed(XF_KEY_w)) direction = 2;
-        else if(XF_isKeyPressed(XF_KEY_s)) direction = 3;
+        while(XF_GetEvent(&event)) {
+            if(event.type == XF_EVENT_KEY_PRESSED) {
+                switch(event.key.code) {
+                    case XF_KEY_d: direction = 0; break;
+                    case XF_KEY_a: direction = 1; break;
+                    case XF_KEY_w: direction = 2; break;
+                    case XF_KEY_s: direction = 3; break;
+                    default: break; 
+                }
+            }
+        }
 
         if((double)(clock() - prev_c) / CLOCKS_PER_SEC >= 0.15) {
             // pass the position from the top to the bottom
@@ -126,7 +133,7 @@ void test_snake() {
             XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, true);
         }
 
-        XF_DrawText(10, 10, fps_text, 16, XF_getWindowWidth(), knxt_font);
+        XF_DrawText(10, 10, fps_text, 16, XF_GetWindowWidth(), knxt_font);
         XF_Render();
     }
 
