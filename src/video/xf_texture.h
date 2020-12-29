@@ -14,5 +14,6 @@ XF_Texture* XF_LoadBMP(const char *path);
 void XF_FreeTexture(XF_Texture *o);
 
 void XF_DrawTexture(const XF_Texture *s, int x, int y);
+void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h);
 
 #endif

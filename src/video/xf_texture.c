@@ -115,3 +115,38 @@ void XF_DrawTexture(const XF_Texture *s, int x, int y) {
         }
     }
 }
+
+void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
+    uint32_t *start = s->data;
+    uint32_t *coord = start;
+
+    float ratioW = (float)s->width / w;
+    float ratioH = (float)s->height / h;
+
+    float counter = 0;
+    float h_counter = 0;
+
+    for(int ay = 0; ay < h; ++ay) {
+        counter = 0;
+
+        for(int ax = 0; ax < w; ++ax) {
+            if(*coord != 0xff00ff) XF_DrawPoint(x + ax, y + ay, *coord);
+
+            counter += ratioW;
+            if(counter >= 1) {
+                coord += (int)counter;
+                counter -= (int)counter;
+            }
+        }
+
+        h_counter += ratioH;
+        if(h_counter >= 1) {
+            start += s->width * ((int)h_counter);
+            coord = start;
+
+            h_counter -= (int)h_counter;
+        } else {
+            coord = start;
+        }
+    }
+}
