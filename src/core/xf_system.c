@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xproto.h>
@@ -342,10 +343,21 @@ Bool check_for_shm_proc(Display* display, XEvent* event, XPointer arg) {
     return (event->type == x_shm_completion);
 }
 
+struct timespec ac_start, ac_end;
+double ac_delta_time;
+
+double XF_GetDeltaTime() {
+    return ac_delta_time;
+}
+
 void XF_Render() {
     XShmPutImage(x_display, x_window, x_gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);
 
     while(!XCheckIfEvent(x_display, &x_event, check_for_shm_proc, NULL)) {}
+
+    clock_gettime(CLOCK_REALTIME, &ac_end);
+    ac_delta_time = (double)(ac_end.tv_sec - ac_start.tv_sec) * 1000.0 + (double)(ac_end.tv_nsec - ac_start.tv_nsec) / 1000000.0;
+    clock_gettime(CLOCK_REALTIME, &ac_start);
     
     /*shm_complete = false;
     do {

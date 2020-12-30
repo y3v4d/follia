@@ -1,6 +1,7 @@
 #ifndef xf_event_h
 #define xf_event_h
 
+// Event types (should be in its own enum)
 #define XF_EVENT_KEY_PRESSED 0x00
 #define XF_EVENT_KEY_RELEASED 0x01
 #define XF_EVENT_MOUSE_PRESSED 0x02

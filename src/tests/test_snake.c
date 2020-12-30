@@ -49,9 +49,6 @@ void test_snake() {
 
     clock_t prev_c = clock();
 
-    struct timespec ac_start, ac_end;
-    double ac_delta_time;
-
     XF_Event event;
 
     while(!XF_WindowShouldClose()) {
@@ -104,13 +101,8 @@ void test_snake() {
             prev_c = clock();
         }
 
-        // get delta time
-        clock_gettime(CLOCK_REALTIME, &ac_end);
-        ac_delta_time = (double)(ac_end.tv_sec - ac_start.tv_sec) * 1000.0 + (double)(ac_end.tv_nsec - ac_start.tv_nsec) / 1000000.0;
-        clock_gettime(CLOCK_REALTIME, &ac_start);
-
         if(fps_end == fps_start || (double)(fps_end - fps_start) / CLOCKS_PER_SEC >= 0.2) {
-            snprintf(fps_text, 16, "FPS: %.2f", 1000.0 / ac_delta_time);
+            snprintf(fps_text, 16, "FPS: %.2f", 1000.0 / XF_GetDeltaTime());
 
             fps_start = fps_end;
         }

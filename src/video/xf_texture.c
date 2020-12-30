@@ -105,48 +105,97 @@ void XF_FreeTexture(XF_Texture *o) {
 }
 
 void XF_DrawTexture(const XF_Texture *s, int x, int y) {
-    uint32_t *coord = s->data;
+    int ac_w = s->width, ac_h = s->height;
+    uint32_t *start_line = s->data;
 
-    for(int ay = 0; ay < s->height; ++ay) {
-        for(int ax = 0; ax < s->width; ++ax) {
+    if(x < 0) {
+        start_line += -x;
+
+        ac_w += x;
+        x = 0;
+    }
+    if(y < 0) {
+        start_line += -y * s->height;
+
+        ac_h += y;
+        y = 0;
+    }
+
+    if(ac_w + x > XF_GetWindowWidth()) {
+        ac_w -= (ac_w + x) - XF_GetWindowWidth();
+    }
+    if(ac_h + y > XF_GetWindowHeight()) {
+        ac_h -= (ac_h + y) - XF_GetWindowHeight();
+    }
+        
+    uint32_t *coord = start_line;
+
+    for(int ay = 0; ay < ac_h; ++ay) {
+        for(int ax = 0; ax < ac_w; ++ax) {
             if(*coord != 0xff00ff) XF_DrawPoint(x + ax, y + ay, *coord);
 
             coord++;
         }
+
+        start_line += s->width;
+        coord = start_line;
     }
 }
 
 void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
-    uint32_t *start = s->data;
-    uint32_t *coord = start;
+    if(w < 0 || h < 0) return;
 
-    float ratioW = (float)s->width / w;
-    float ratioH = (float)s->height / h;
+    int ac_w = w, ac_h = h;
+    uint32_t *line_start = s->data;
+    
+    float w_ratio = (float)s->width / w;
+    float h_ratio = (float)s->height / h;
+    
+    if(x < 0) {
+        line_start += (uint32_t)((float)-x * w_ratio); // to improve
 
-    float counter = 0;
+        ac_w += x;
+        x = 0;
+    }
+    if(y < 0) {
+        line_start += (uint32_t)((float)-y * (float)s->height * h_ratio); // to improve
+
+        ac_h += y;
+        y = 0;
+    }
+
+    if(ac_w + x > XF_GetWindowWidth()) {
+        ac_w -= (ac_w + x) - XF_GetWindowWidth();
+    }
+    if(ac_h + y > XF_GetWindowHeight()) {
+        ac_h -= (ac_h + y) - XF_GetWindowHeight();
+    }
+
+    
+    uint32_t *coord = line_start;
+
+    float w_counter = 0;
     float h_counter = 0;
 
-    for(int ay = 0; ay < h; ++ay) {
-        counter = 0;
+    for(int ay = 0; ay < ac_h; ++ay) {
+        w_counter = 0;
 
-        for(int ax = 0; ax < w; ++ax) {
+        for(int ax = 0; ax < ac_w; ++ax) {
             if(*coord != 0xff00ff) XF_DrawPoint(x + ax, y + ay, *coord);
 
-            counter += ratioW;
-            if(counter >= 1) {
-                coord += (int)counter;
-                counter -= (int)counter;
+            w_counter += w_ratio;
+            if(w_counter >= 1) {
+                coord += (int)w_counter;
+                w_counter -= (int)w_counter;
             }
         }
 
-        h_counter += ratioH;
+        h_counter += h_ratio;
         if(h_counter >= 1) {
-            start += s->width * ((int)h_counter);
-            coord = start;
-
+            line_start += s->width * ((int)h_counter);
             h_counter -= (int)h_counter;
-        } else {
-            coord = start;
         }
+        
+        coord = line_start;
     }
 }

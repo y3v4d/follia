@@ -12,4 +12,6 @@
 #define XF_MOUSE_BUTTON_8 0x08
 #define XF_MOUSE_BUTTON_9 0x09
 
+// Macros used to determinate clicked mouse button
+
 #endif

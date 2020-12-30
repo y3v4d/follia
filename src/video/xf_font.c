@@ -222,7 +222,7 @@ void render_char(int* x, int* y, const char character, XF_FontBDF *font, uint32_
     *y += picked->dwy; 
 }
 
-void XF_setTextColor(uint32_t color) {
+void XF_SetTextColor(uint32_t color) {
     if(color <= 0xFFFFFF) text_color = color;
     else XF_WriteLog(XF_LOG_WARNING, "Cannot assign > 0xFFFFFF color to RGB storage!");
 }
