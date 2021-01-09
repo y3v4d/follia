@@ -64,7 +64,10 @@ void test_scalable() {
         }
 
         width += w_velocity;
+        if(width < 1) width = 1;
+
         height += h_velocity;
+        if(height < 1) height = 1;
 
         x += x_velocity;
         y += y_velocity;

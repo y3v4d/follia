@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 // convert 32-bit little endian number to cpu number
 // gets pointer to beginning of the 4-size uint8_t array
@@ -142,6 +143,7 @@ void XF_DrawTexture(const XF_Texture *s, int x, int y) {
     }
 }
 
+/* TO OPTIMIZE! */
 void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
     if(w < 0 || h < 0) return;
 
@@ -151,14 +153,26 @@ void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
     float w_ratio = (float)s->width / w;
     float h_ratio = (float)s->height / h;
     
+    float w_counter = 0;
+    float h_counter = 0;
+
+    float w_offset = 0;
+    float h_offset = 0;
+    
     if(x < 0) {
-        line_start += (uint32_t)((float)-x * w_ratio); // to improve
+        w_offset = -x * w_ratio;
+        line_start += (uint32_t)w_offset;
+
+        w_counter = w_offset - (int) w_offset;
 
         ac_w += x;
         x = 0;
     }
     if(y < 0) {
-        line_start += (uint32_t)((float)-y * (float)s->height * h_ratio); // to improve
+        h_offset = -y * h_ratio;
+        line_start += (uint32_t)((int)h_offset * s->height);
+
+        h_counter = h_offset - (int) h_offset;
 
         ac_h += y;
         y = 0;
@@ -170,16 +184,10 @@ void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
     if(ac_h + y > XF_GetWindowHeight()) {
         ac_h -= (ac_h + y) - XF_GetWindowHeight();
     }
-
     
     uint32_t *coord = line_start;
 
-    float w_counter = 0;
-    float h_counter = 0;
-
     for(int ay = 0; ay < ac_h; ++ay) {
-        w_counter = 0;
-
         for(int ax = 0; ax < ac_w; ++ax) {
             if(*coord != 0xff00ff) XF_DrawPoint(x + ax, y + ay, *coord);
 
@@ -197,5 +205,7 @@ void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
         }
         
         coord = line_start;
+
+        w_counter = w_offset - (int) w_offset;
     }
 }
