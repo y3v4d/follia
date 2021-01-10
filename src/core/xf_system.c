@@ -108,14 +108,14 @@ boolean XF_Initialize(int width, int height) {
     XClassHint *class_hint = XAllocClassHint();
     if(class_hint) {
         class_hint->res_class = "C-app";
-        class_hint->res_name = "Follia";
+        class_hint->res_name = "x11framework";
         XSetClassHint(x_display, x_window, class_hint);
 
         XFree(class_hint);
     } else XF_WriteLog(XF_LOG_WARNING, "Couldn't allocate memory for WM_CLASS value");
 
     // WM_NAME
-    char* wm_name_string = "Follia";
+    char* wm_name_string = "X11Framework";
     XTextProperty wm_text_property;
 
     XStringListToTextProperty(&wm_name_string, 1, &wm_text_property);
