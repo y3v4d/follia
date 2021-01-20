@@ -24,11 +24,11 @@ void test_scalable() {
 
     XF_Event event;
 
-    int width = 128, height = 128;
-    int w_velocity = 0, h_velocity = 0;
+    float radius = 64;
+    float radius_speed = 0.05;
     
-    float x = 0, y = 0;
-    float x_velocity = 0, y_velocity = 0;
+    float x = XF_GetWindowWidth() / 2 - radius, y = XF_GetWindowHeight() / 2 - radius;
+    float x_velocity = 0.2, y_velocity = 0.1;
 
     char fps_text[16];
     fps_text[0] = 0;
@@ -36,51 +36,41 @@ void test_scalable() {
 
     char circle_data_text[64];
     circle_data_text[0] = 0;
-
+    
     while(!XF_WindowShouldClose()) {
-        while(XF_GetEvent(&event)) {
-            if(event.type == XF_EVENT_KEY_PRESSED) {
-                switch(event.key.code) {
-                    case XF_KEY_w: h_velocity = 1; break;
-                    case XF_KEY_s: h_velocity = -1; break;
-                    case XF_KEY_a: w_velocity = -1; break;
-                    case XF_KEY_d: w_velocity = 1; break;
-                    case XF_KEY_i: y_velocity = -0.1f; break;
-                    case XF_KEY_k: y_velocity = 0.1f; break;
-                    case XF_KEY_j: x_velocity = -0.1f; break;
-                    case XF_KEY_l: x_velocity = 0.1f; break;
-
-                    default: break;
-                }
-            } else if(event.type == XF_EVENT_KEY_RELEASED) {
-                switch(event.key.code) {
-                    case XF_KEY_w: case XF_KEY_s: h_velocity = 0; break;
-                    case XF_KEY_a: case XF_KEY_d: w_velocity = 0; break;
-                    case XF_KEY_i: case XF_KEY_k: y_velocity = 0; break;
-                    case XF_KEY_j: case XF_KEY_l: x_velocity = 0; break;
-                    default: break;
-                }
-            }
-        }
-
-        width += w_velocity;
-        if(width < 1) width = 1;
-
-        height += h_velocity;
-        if(height < 1) height = 1;
+        while(XF_GetEvent(&event)) {}
 
         x += x_velocity;
         y += y_velocity;
 
-        snprintf(circle_data_text, 64, "X: %f Y: %f\nW: %d H: %d", x, y, width, height);
+        radius += radius_speed;
+        if(radius >= 80 || radius <= 40) radius_speed *= -1;
+        
+        if(x + radius > XF_GetWindowWidth()) {
+            x = XF_GetWindowWidth() - radius;
+            x_velocity *= -1;
+        } else if(x - radius < 0) {
+            x = radius;
+            x_velocity *= -1;
+        }
 
-        if((double)(clock() - fps_timer) / CLOCKS_PER_SEC >= 0.2) {
+        if(y + radius > XF_GetWindowHeight()) {
+            y = XF_GetWindowHeight() - radius;
+            y_velocity *= -1;
+        } else if(y - radius < 0) {
+            y = radius;
+            y_velocity *= -1;
+        }
+
+        snprintf(circle_data_text, 64, "X: %.2f Y: %.2f\nRadius: %.2f\n", x, y, radius);
+
+        if((double)(clock() - fps_timer) >= 0.2 * CLOCKS_PER_SEC) {
             snprintf(fps_text, 16, "FPS: %.2f", 1000.0 / XF_GetDeltaTime());
             fps_timer = clock();
         }
 
         XF_ClearScreen();
-        XF_DrawTextureScaled(test_texture, x, y, width, height);
+        XF_DrawTextureScaled(test_texture, x - radius, y - radius, radius * 2, radius * 2);
         XF_DrawText(0, 0, fps_text, 16, XF_GetWindowWidth(), knxt_font);
         XF_DrawText(0, 20, circle_data_text, 64, XF_GetWindowWidth(), knxt_font);
         XF_Render();
