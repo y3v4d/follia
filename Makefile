@@ -1,33 +1,33 @@
+PROJECT_DIRECTORY := $(PWD)
+
 CC := gcc
 CFLAGS := -Wall
-LIBS := -lm -lX11 -lXext 
+LIBS := -lm -lX11 -lXext
 
-SRC := $(wildcard src/core/*.c src/video/*.c)
-OBJ := $(SRC:src/%.c=obj/%.o)
+INC := -I include
+SRC := $(shell find src -type f -name *.c)
+OBJ := $(SRC:src/%.c=build/src/%.o)
 
-SRC_TESTS := $(wildcard src/tests/*.c)
-OBJ_TESTS := $(SRC_TESTS:src/%.c=obj/%.o)
+export PROJECT_DIRECTORY
 
-.PHONY: compile clean run deploy
+.PHONY: compile clean examples/snake
 
-obj/%.o: src/%.c
+build/src/%.o: src/%.c
 	@echo "Compiling shared library $<..."
-	@$(CC) -c -fPIC -o $@ $< $(CFLAGS)
+	@mkdir -p $(dir $@)
+	@$(CC) -c -fPIC -o $@ $< $(INC) $(CFLAGS)
 
-compile: $(OBJ) $(OBJ_TESTS)
-	@echo "Linking..."
-	@$(CC) -o bin/app $^ $(LIBS)
-
-# deploy the library
-deploy: $(OBJ)
-	@echo "Linking shared library..."
-	@$(CC) -shared -o bin/shared/libx11framework.so $^ $(LIBS)
+compile: $(OBJ)
+	@echo "Building shared library..."
+	@mkdir -p build/lib
+	@$(CC) -shared -o build/lib/libx11framework.so $^ $(LIBS)
+	@echo "Start making examples..."
+	@make -C examples/snake -f Makefile compile
 
 clean:
 	@echo "Cleaning up..."
-	@rm -f obj/core/*.o obj/tests/*.o obj/video/*.o
-	@rm -f bin/app bin/shared/libx11framework.so
+	@rm -r build/*
 
-run:
-	@echo "Running newest build..."
-	@./bin/app
+examples/snake:
+	@echo "Running snake example..."
+	@./build/examples/snake/snake

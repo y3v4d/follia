@@ -1,6 +1,4 @@
-#include "test_snake.h"
-
-#include "../x11framework.h"
+#include "x11framework.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -21,7 +19,7 @@ const unsigned MAX_PARTS = 255;
 const unsigned FIELD_SIZE = 32;
 const unsigned FIELD_W = 20, FIELD_H = 15;
 
-void test_snake() {
+int main() {
     srand(time(NULL));
 
     if(!XF_Initialize(640, 480))

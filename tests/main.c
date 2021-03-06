@@ -3,7 +3,8 @@
 #include "test_scalable.h"
 
 int main() {
-    test_scalable();
+    //test_scalable();
+    test_snake();
 
     return 0;
 }

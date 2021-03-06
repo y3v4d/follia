@@ -1,5 +1,5 @@
-#include "xf_system.h"
-#include "xf_log.h"
+#include "core/xf_system.h"
+#include "core/xf_log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,16 +93,16 @@ boolean XF_Initialize(int width, int height) {
     x_window_attr.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ButtonMotionMask;
 
     XF_WriteLog(XF_LOG_INFO, "Creating window...\n");
-    x_window = XCreateWindow(x_display, // display
-                           XRootWindow(x_display, x_screen), // parent window
-                           0, 0, // x, y coordinates
-                           WINDOW_WIDTH, WINDOW_HEIGHT, // width, height
-                           0, // border width
-                           XDefaultDepth(x_display, x_screen), // depth
-                           InputOutput, // class
-                           x_visual, // visual
+    x_window = XCreateWindow(x_display,                               // display
+                           XRootWindow(x_display, x_screen),          // parent window
+                           0, 0,                                      // x, y coordinates
+                           WINDOW_WIDTH, WINDOW_HEIGHT,               // width, height
+                           0,                                         // border width
+                           XDefaultDepth(x_display, x_screen),        // depth
+                           InputOutput,                               // class
+                           x_visual,                                  // visual
                            CWBackPixel | CWBorderPixel | CWEventMask, // attributes mask
-                           &x_window_attr); // attributes
+                           &x_window_attr);                           // attributes
 
     // WM_CLASS
     XClassHint *class_hint = XAllocClassHint();

@@ -1,6 +1,6 @@
-#include "xf_font.h"
-#include "../core/xf_log.h"
-#include "../core/xf_system.h"
+#include "video/xf_font.h"
+#include "core/xf_log.h"
+#include "core/xf_system.h"
 
 #include <stdio.h>
 #include <stdlib.h>
