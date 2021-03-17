@@ -1,5 +1,5 @@
 06.03.2021
 
 1. Create Makefile for tests
-    [] Integrate main makefile with makefile for tests
+    [x] Integrate main makefile with makefile for tests
 2. Comment the code and prepare for documentation

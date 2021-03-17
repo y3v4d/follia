@@ -1,11 +1,9 @@
-#include "test_scalable.h"
-
-#include "../x11framework.h"
+#include "x11framework.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 
-void test_scalable() {
+int main() {
     if(!XF_Initialize(640, 480))
         exit(-1);
 
@@ -78,6 +76,7 @@ void test_scalable() {
 
     XF_FreeTexture(test_texture);
     XF_FreeFontBDF(knxt_font);
-
     XF_Close();
+
+    return 0;
 }

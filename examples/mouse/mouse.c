@@ -1,11 +1,9 @@
-#include "test_mouse.h"
-
-#include "../x11framework.h"
+#include "x11framework.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-void test_mouse() {
+int main() {
     if(!XF_Initialize(640, 480))
         exit(-1);
 
@@ -51,7 +49,7 @@ void test_mouse() {
     }
 
     XF_FreeFontBDF(knxt_font);
-
     XF_Close();
-}
 
+    return 0;
+}
