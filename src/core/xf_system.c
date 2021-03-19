@@ -64,25 +64,29 @@ boolean XF_Initialize(int width, int height) {
         return false;
     }
     XF_WriteLog(XF_LOG_INFO, "Successfully opened display\n");
+
     char *x_display_name = XDisplayString(x_display);
     XF_WriteLog(XF_LOG_INFO, "Display %s X version %d.%d\n", x_display_name, XProtocolVersion(x_display), XProtocolRevision(x_display));
 
     XSetErrorHandler(x_error_handler);
 
+    XF_WriteLog(XF_LOG_INFO, "Checking for XKB extension...\n");
     int xkb_major_version = XkbMajorVersion, xkb_minor_version = XkbMinorVersion;
     if(!XkbLibraryVersion(&xkb_major_version, &xkb_minor_version)) {
-        XF_WriteLog(XF_LOG_ERROR, "Coulnd't find XKB extension!\n");
+        XF_WriteLog(XF_LOG_ERROR, "XKB compiler version (%d.%d) doesn't match XKB runtime version (%d.%d)!\n",
+                    XkbMajorVersion, XkbMinorVersion, xkb_major_version, xkb_minor_version);
 
         return false;
-    } else XF_WriteLog(XF_LOG_INFO, "Found version %d.%d of XKB extension\n", xkb_major_version, xkb_minor_version);
-    
+    } else XF_WriteLog(XF_LOG_INFO, "Found matching XKB %d.%d extension!\n", xkb_major_version, xkb_minor_version);
+   
+    XF_WriteLog(XF_LOG_INFO, "Checking server for XKB extension...\n"); 
     int xkb_opcode, xkb_event, xkb_error;
     if(!XkbQueryExtension(x_display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major_version, &xkb_minor_version)) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't query XKB extension!\n");
+        XF_WriteLog(XF_LOG_ERROR, "Couldn't find compatibile server XKB extension!\n");
         XCloseDisplay(x_display);
 
         return false;
-    } else XF_WriteLog(XF_LOG_INFO, "Successfuly queried XKB extension\n");
+    } else XF_WriteLog(XF_LOG_INFO, "Found matching server XKB extension!\n");
     
     x_screen = XDefaultScreen(x_display);
     x_visual = XDefaultVisual(x_display, x_screen);
@@ -104,7 +108,7 @@ boolean XF_Initialize(int width, int height) {
                            CWBackPixel | CWBorderPixel | CWEventMask, // attributes mask
                            &x_window_attr);                           // attributes
 
-    // WM_CLASS
+    // WM_CLASS setup
     XClassHint *class_hint = XAllocClassHint();
     if(class_hint) {
         class_hint->res_class = "C-app";
@@ -114,7 +118,7 @@ boolean XF_Initialize(int width, int height) {
         XFree(class_hint);
     } else XF_WriteLog(XF_LOG_WARNING, "Couldn't allocate memory for WM_CLASS value");
 
-    // WM_NAME
+    // WM_NAME setup
     char* wm_name_string = "X11Framework";
     XTextProperty wm_text_property;
 
@@ -123,7 +127,7 @@ boolean XF_Initialize(int width, int height) {
 
     XFree(wm_text_property.value);
 
-    // WM_DELETE
+    // WM_DELETE setup
     wm_delete_window = XInternAtom(x_display, "WM_DELETE_WINDOW", False);
     XSetWMProtocols(x_display, x_window, &wm_delete_window, 1);
 
@@ -141,7 +145,7 @@ boolean XF_Initialize(int width, int height) {
 
     x_buffer = XShmCreateImage(x_display, x_visual, XDefaultDepth(x_display, x_screen), ZPixmap, NULL, &shm_info, WINDOW_WIDTH, WINDOW_HEIGHT);
     if(!x_buffer) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for shared-memory x_buffer!\n");
+        XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for shared-memory buffer!\n");
         return false;
     }
 
@@ -166,6 +170,7 @@ boolean XF_Initialize(int width, int height) {
 
     x_shm_completion = XShmGetEventBase(x_display) + ShmCompletion;
 
+    // allocate memory for shortcut table of rows
     h_lines = (uint32_t**)malloc(WINDOW_HEIGHT * sizeof(uint32_t*));
     for(int i = 0; i < WINDOW_HEIGHT; ++i) {
         h_lines[i] = (uint32_t*)&x_buffer->data[i * WINDOW_WIDTH * 4];
@@ -173,13 +178,13 @@ boolean XF_Initialize(int width, int height) {
 
     XMapWindow(x_display, x_window);
 
-    XAutoRepeatOff(x_display);
+    //XAutoRepeatOff(x_display);
 
     return true;
 }
 
 void XF_Close() {
-    XAutoRepeatOn(x_display);
+    //XAutoRepeatOn(x_display);
 
     XShmDetach(x_display, &shm_info);
     XDestroyImage(x_buffer);
@@ -204,7 +209,7 @@ int XF_GetWindowHeight() { return WINDOW_HEIGHT; }
 boolean XF_WindowShouldClose() { return x_window_close; }
 
 int recent_button = 0; // stores pressed button for the motion event (for some reason
-                        // motion event doesn't know what button is pressed, always contains 0)
+                       // motion event doesn't know what button is pressed, always contains 0)
 
 boolean XF_GetEvent(XF_Event* pevent) {
     int pending = XPending(x_display);
