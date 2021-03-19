@@ -4,7 +4,7 @@
 #include "xf_utils.h"
 #include <stdarg.h>
 
-#define XF_LOG_ENABLED 0 // set it to 1 if you want to get log files
+#define XF_LOG_ENABLED 1 // set it to 1 if you want to get log files
 
 enum XF_LogType {
     XF_LOG_INFO = 0,

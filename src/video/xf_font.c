@@ -183,15 +183,17 @@ XF_FontBDF* XF_LoadFontBDF(const char *path) {
 }
 
 void render_char(int* x, int* y, const char character, XF_FontBDF *font, uint32_t color) {
-    XF_CharBDF *picked;
+    XF_CharBDF *picked = NULL;
     
     for(int i = 0; i < font->char_number; ++i) {
-        if(font->chars[i]->id == (uint32_t) character) picked = font->chars[i];
+        if(font->chars[i]->id == character) {
+            picked = font->chars[i];
+            break;
+        }
     }
 
     if(!picked) {
        XF_WriteLog(XF_LOG_WARNING, "Cannot render unknown character!\n");
-
        return;
     }
 
@@ -235,17 +237,17 @@ void XF_DrawText(int x, int y, const char *text, int size, int max_width, XF_Fon
         if(i == next_word && i < size - 1) { // check if word has to be moved to another line
             // search for the next word
             int s = i + 1;
-            while(true) { if(text[s] == 0 || text[s] == ' ' || s == size - 1) break; s++; }
+            while(text[s] != 0 && text[s] != ' ' && s != size -1) { s++; }
             
             if(x + ((s - i) * font->fbbw) >= max_width) { // don't count space for render
-                x = 0;
+                x = start_x;
                 if(i > 0) y += font->fbbh; // don't move first line if it doesn't fit
             }
 
             next_word = (s == size - 1 ? -1 : s + 1); // don't count end of text as another word
         } else if(x + font->fbbw >= max_width) { // displace letters in word if they don't fit
             if(text[i] != ' ') {
-                x = 0;
+                x = start_x;
                 y += font->fbbh;
             } else continue; // just don't render space if it doesn't fit the line, instead of moving it to another line
         } else if(text[i] == '\n') { // make \n function

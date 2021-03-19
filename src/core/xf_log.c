@@ -22,7 +22,7 @@ boolean XF_InitializeLog() {
     time(&raw_time);
     loc_time = localtime(&raw_time);
 
-    strftime(path, 64, "bin/log_%C%m%d-%H%M%S.txt", loc_time); 
+    strftime(path, 64, "build/logs/log_%C%m%d-%H%M%S.txt", loc_time); 
     
     log_file = fopen(path, "w");
     if(!log_file) {

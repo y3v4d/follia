@@ -212,7 +212,7 @@ boolean XF_GetEvent(XF_Event* pevent) {
     if(pending) {
         XNextEvent(x_display, &x_event);
 
-        uint8_t sym = 0;
+        uint32_t sym = 0;
         int mask = 0;
         switch(x_event.type) {
             case KeyPress:

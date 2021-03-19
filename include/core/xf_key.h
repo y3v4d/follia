@@ -1,9 +1,10 @@
 #ifndef xf_key_h
 #define xf_key_h
 
-#define XF_KEY_BACKSPACE 0x08
-#define XF_KEY_ENTER 0x0D
-#define XF_KEY_ESCAPE 0x1B
+// the same mapping as in the X11 keysymdef.h
+#define XF_KEY_BACKSPACE 0xFF08
+#define XF_KEY_ENTER 0xFF0D
+#define XF_KEY_ESCAPE 0xFF1B
 
 #define XF_KEY_SPACE 0x20
 #define XF_KEY_EXCLAMATION 0x21

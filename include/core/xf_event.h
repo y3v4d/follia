@@ -14,7 +14,7 @@
 #include <stdint.h>
 
 typedef struct _XF_KeyEvent {
-    char code;
+    uint32_t code;
 } XF_KeyEvent;
 
 typedef struct _XF_MouseEvent {
