@@ -111,7 +111,7 @@ int main() {
         XF_DrawRect(apple.x * FIELD_SIZE, apple.y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, true);
         
         for(unsigned i = 0; i < MAX_PARTS && parts[i]; ++i) {
-            XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0x00ffff, false);
+            XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0x00ff00, false);
             XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, true);
         }
 

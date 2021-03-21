@@ -1,5 +1,6 @@
 #include "core/xf_system.h"
 #include "core/xf_log.h"
+#include "core/xf_timer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -348,11 +349,10 @@ Bool check_for_shm_proc(Display* display, XEvent* event, XPointer arg) {
     return (event->type == x_shm_completion);
 }
 
-struct timespec ac_start, ac_end;
-double ac_delta_time;
+XF_Timer dt_messure;
 
 double XF_GetDeltaTime() {
-    return ac_delta_time;
+    return dt_messure.delta;
 }
 
 void XF_Render() {
@@ -360,9 +360,8 @@ void XF_Render() {
 
     while(!XCheckIfEvent(x_display, &x_event, check_for_shm_proc, NULL)) {}
 
-    clock_gettime(CLOCK_REALTIME, &ac_end);
-    ac_delta_time = (double)(ac_end.tv_sec - ac_start.tv_sec) * 1000.0 + (double)(ac_end.tv_nsec - ac_start.tv_nsec) / 1000000.0;
-    clock_gettime(CLOCK_REALTIME, &ac_start);
+    XF_StopTimer(&dt_messure);
+    XF_StartTimer(&dt_messure);
     
     /*shm_complete = false;
     do {
