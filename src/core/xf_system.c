@@ -61,7 +61,7 @@ boolean XF_Initialize(int width, int height) {
 
     x_display = XOpenDisplay(NULL);
     if(!x_display) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't open display\n"); 
+        XF_WriteLog(XF_LOG_ERROR, "Couldn't open display\n");
         return false;
     }
     XF_WriteLog(XF_LOG_INFO, "Successfully opened display\n");
@@ -79,8 +79,8 @@ boolean XF_Initialize(int width, int height) {
 
         return false;
     } else XF_WriteLog(XF_LOG_INFO, "Found matching XKB %d.%d extension!\n", xkb_major_version, xkb_minor_version);
-   
-    XF_WriteLog(XF_LOG_INFO, "Checking server for XKB extension...\n"); 
+
+    XF_WriteLog(XF_LOG_INFO, "Checking server for XKB extension...\n");
     int xkb_opcode, xkb_event, xkb_error;
     if(!XkbQueryExtension(x_display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major_version, &xkb_minor_version)) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't find compatibile server XKB extension!\n");
@@ -88,7 +88,7 @@ boolean XF_Initialize(int width, int height) {
 
         return false;
     } else XF_WriteLog(XF_LOG_INFO, "Found matching server XKB extension!\n");
-    
+
     x_screen = XDefaultScreen(x_display);
     x_visual = XDefaultVisual(x_display, x_screen);
 
@@ -193,14 +193,14 @@ void XF_Close() {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't detach shared memory from the calling process!\n");
 
     XSync(x_display, True);
-    
+
     if(shmctl(shm_info.shmid, IPC_RMID, 0) == -1)
         XF_WriteLog(XF_LOG_ERROR, "Couldn't mark segment to be destroyed!\n");
 
     free(h_lines);
 
     XFreeGC(x_display, x_gc);
-    XDestroyWindow(x_display, x_window); 
+    XDestroyWindow(x_display, x_window);
     XCloseDisplay(x_display);
 }
 
@@ -236,7 +236,7 @@ boolean XF_GetEvent(XF_Event* pevent) {
                 if((x_event.xkey.state & LockMask) == 2) {
                     mask = 1 - (x_event.xkey.state & ShiftMask);
                 } else mask = x_event.xkey.state & ShiftMask;
-               
+
                 sym = XkbKeycodeToKeysym(x_display, x_event.xkey.keycode, 0, mask);
 
                 pevent->type = XF_EVENT_KEY_RELEASED;
@@ -300,7 +300,7 @@ void XF_DrawLine(int x1, int y1, int x2, int y2, uint32_t color) {
 
         int step = (x1 < x2 ? 1 : -1);
         for(int i = x1; i != x2; i += step)
-            XF_DrawPoint(i, (int)(m * i + c), color);  
+            XF_DrawPoint(i, (int)(m * i + c), color);
     }
 }
 
@@ -325,7 +325,7 @@ void XF_DrawRect(int x, int y, int w, int h, uint32_t color, boolean outline) {
 
     if(!outline) {
         uint32_t *s = h_lines[y] + x;
-        
+
         int hz_count = 0;
 
         while(h--) {
@@ -333,7 +333,7 @@ void XF_DrawRect(int x, int y, int w, int h, uint32_t color, boolean outline) {
 
             while(hz_count--) {
                 *s++ = color;
-            }    
+            }
 
             s += WINDOW_WIDTH - w;
         }
@@ -362,7 +362,7 @@ void XF_Render() {
 
     XF_StopTimer(&dt_messure);
     XF_StartTimer(&dt_messure);
-    
+
     /*shm_complete = false;
     do {
         XF_ProcessEvents();
