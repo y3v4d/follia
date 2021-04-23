@@ -273,8 +273,13 @@ boolean XF_GetEvent(XF_Event* pevent) {
     return (pending != 0);
 }
 
+uint8_t clear_color = 166;
+void XF_SetClearColor(uint8_t base) {
+    clear_color = base;
+}
+
 void XF_ClearScreen() {
-    memset(x_buffer->data, 166, WINDOW_WIDTH * WINDOW_HEIGHT * 4);
+    memset(x_buffer->data, clear_color, WINDOW_WIDTH * WINDOW_HEIGHT * 4);
 }
 
 boolean range_check(int x, int y) {

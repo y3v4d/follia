@@ -41,6 +41,14 @@ int XF_GetWindowHeight();
 double XF_GetDeltaTime();
 
 /*
+ * XF_SetClearColor
+ * For fast implementation, you are allowed to use 8-bit color (white, black, shades of grey)
+ *
+ * base - between 0 - 255
+ */
+void XF_SetClearColor(uint8_t base);
+
+/*
  * XF_ClearScreen
  * Clears the screen buffer with gray color (166, 166, 166).
  */

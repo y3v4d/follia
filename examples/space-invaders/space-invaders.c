@@ -45,16 +45,19 @@ int main() {
     }
 
     XF_Texture* ship_texture = XF_LoadBMP("data/space-invaders/ship.bmp");
-    if(!ship_texture) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't load ship image!\n");
+    XF_Texture* alien0_texture = XF_LoadBMP("data/space-invaders/alien0.bmp");
+    if(!ship_texture || !alien0_texture) {
+        XF_WriteLog(XF_LOG_ERROR, "Couldn't load images!\n");
 
+        if(ship_texture) XF_FreeTexture(ship_texture);
+        if(alien0_texture) XF_FreeTexture(alien0_texture);
         XF_FreeFontBDF(knxt_font);
 
         XF_Close();
         return -1;
     }
 
-    struct Object player = { 0.f, 0.f, 48.f, 32.f, 0.f, 3 };
+    struct Object player = { 0.f, 0.f, (float)ship_texture->width, (float)ship_texture->height, 0.f, 3 };
     player.x = ((float)XF_GetWindowWidth() - player.w) / 2.f;
     player.y = (float)XF_GetWindowHeight() - 2.f * player.h;
 
@@ -71,8 +74,8 @@ int main() {
     for(int i = 0; i < TOTAL_ALIENS; ++i) {
         aliens[i] = (struct Object*)malloc(sizeof(struct Object));
 
-        aliens[i]->w = 32.f;
-        aliens[i]->h = 32.f;
+        aliens[i]->w = (float)alien0_texture->width;
+        aliens[i]->h = (float)alien0_texture->height;
 
         aliens[i]->x = (i % ALIENS_HOR) * (aliens[i]->w + ALIENS_GAP); 
         aliens[i]->y = (i / ALIENS_HOR) * (aliens[i]->h * 1.5f);
@@ -87,6 +90,9 @@ int main() {
 
     XF_Timer alien_timer;
     XF_StartTimer(&alien_timer);
+
+    XF_SetClearColor(0);
+    XF_SetTextColor(0xffffff);
 
     XF_Event event;
     while(!XF_WindowShouldClose()) {
@@ -218,20 +224,13 @@ int main() {
         }
 
         XF_ClearScreen();
-        for(int i = 0; i < TOTAL_ALIENS; ++i) {
-            if(aliens[i] != NULL) {
-                if(aliens[i]->is_bottom) {
-                    XF_DrawRect(aliens[i]->x, aliens[i]->y, aliens[i]->w, aliens[i]->h, 0x0000ff, false);
-                } else {
-                    XF_DrawRect(aliens[i]->x, aliens[i]->y, aliens[i]->w, aliens[i]->h, 0x00ff00, false);
-                }
-            }
-        }
-
-        for(int i = 0; i < 2; ++i) {
+        for(int i = 0; i < 2; ++i)
             if(bullets[i] != NULL) XF_DrawRect(bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h, 0xffff00, false);
-        }
-        XF_DrawRect(player.x, player.y, player.w, player.h, 0xff0000, false);
+
+        for(int i = 0; i < TOTAL_ALIENS; ++i)
+            if(aliens[i] != NULL) XF_DrawTexture(alien0_texture, aliens[i]->x, aliens[i]->y);
+
+        XF_DrawTexture(ship_texture, player.x, player.y);
 
         XF_DrawText(10, 10, lives_text, 16, 200, knxt_font);
         XF_Render();
@@ -242,6 +241,7 @@ int main() {
 
     XF_FreeFontBDF(knxt_font);
     XF_FreeTexture(ship_texture);
+    XF_FreeTexture(alien0_texture);
 
     XF_Close();
     return 0;
