@@ -10,7 +10,7 @@ OBJ := $(SRC:src/%.c=build/src/%.o)
 
 export PROJECT_DIRECTORY
 
-.PHONY: compile clean examples/snake examples/scalable examples/mouse examples/text
+.PHONY: compile clean examples/snake examples/scalable examples/mouse examples/text examples/space-invaders
 
 build/src/%.o: src/%.c
 	@echo "Compiling shared library $<..."
@@ -26,6 +26,7 @@ compile: $(OBJ)
 	@make -C examples/scalable -f Makefile compile
 	@make -C examples/mouse -f Makefile compile
 	@make -C examples/text -f Makefile compile
+	@make -C examples/space-invaders -f Makefile compile
 
 clean:
 	@echo "Cleaning up..."
@@ -46,3 +47,7 @@ examples/mouse:
 examples/text:
 	@echo "Running text example..."
 	@./build/examples/text/text
+
+examples/space-invaders:
+	@echo "Running space-invaders example..."
+	@./build/examples/space-invaders/space-invaders
