@@ -14,6 +14,7 @@ struct Object {
     float w, h;
     float v;
 
+    int lives;
     boolean is_bottom;
 };
 
@@ -35,9 +36,30 @@ int main() {
 
     srand(time(NULL));
 
-    struct Object player = { 0.f, 0.f, 32.f, 32.f, 0.f };
+    XF_FontBDF* knxt_font = XF_LoadFontBDF("data/fonts/knxt.bdf");
+    if(!knxt_font) {
+        XF_WriteLog(XF_LOG_ERROR, "Couldn't load knxt font!\n");
+        
+        XF_Close();
+        return -1;
+    }
+
+    XF_Texture* ship_texture = XF_LoadBMP("data/space-invaders/ship.bmp");
+    if(!ship_texture) {
+        XF_WriteLog(XF_LOG_ERROR, "Couldn't load ship image!\n");
+
+        XF_FreeFontBDF(knxt_font);
+
+        XF_Close();
+        return -1;
+    }
+
+    struct Object player = { 0.f, 0.f, 48.f, 32.f, 0.f, 3 };
     player.x = ((float)XF_GetWindowWidth() - player.w) / 2.f;
     player.y = (float)XF_GetWindowHeight() - 2.f * player.h;
+
+    char lives_text[64];
+    snprintf(lives_text, 64, "Lives: %d", player.lives);
 
     struct Object* bullets[2] = { NULL, NULL };
 
@@ -159,6 +181,14 @@ int main() {
             if(bullets[1]->y > XF_GetWindowHeight()) {
                 free(bullets[1]);
                 bullets[1] = NULL;
+            } else if(bullets[1]->x + bullets[1]->w >= player.x && bullets[1]->x <= player.x + player.w &&
+               bullets[1]->y + bullets[1]->h >= player.y && bullets[1]->y <= player.y + player.h) {
+                free(bullets[1]);
+                bullets[1] = NULL;
+
+                if(player.lives > 0) {
+                    snprintf(lives_text, 64, "Lives: %d", --player.lives);
+                }
             }
         }
 
@@ -202,11 +232,16 @@ int main() {
             if(bullets[i] != NULL) XF_DrawRect(bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h, 0xffff00, false);
         }
         XF_DrawRect(player.x, player.y, player.w, player.h, 0xff0000, false);
+
+        XF_DrawText(10, 10, lives_text, 16, 200, knxt_font);
         XF_Render();
     }
 
     for(int i = 0; i < 2; ++i) if(bullets[i] != NULL) free(bullets[i]);
     for(int i = 0; i < TOTAL_ALIENS; ++i) if(aliens[i] != NULL) free(aliens[i]);
+
+    XF_FreeFontBDF(knxt_font);
+    XF_FreeTexture(ship_texture);
 
     XF_Close();
     return 0;
