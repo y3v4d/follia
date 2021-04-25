@@ -33,7 +33,7 @@ uint32_t **h_lines = NULL;
 XShmSegmentInfo shm_info;
 
 int x_shm_completion; // determinate what's the type of shm completion event
-boolean shm_complete = false; // determinate if the shm finished its job
+boolean shm_complete = true; // determinate if the shm finished its job
 
 Atom wm_delete_window;
 
@@ -278,7 +278,16 @@ void XF_SetClearColor(uint8_t base) {
     clear_color = base;
 }
 
+Bool check_for_shm_proc(Display* display, XEvent* event, XPointer arg) {
+    return (event->type == x_shm_completion);
+}
+
 void XF_ClearScreen() {
+    if(!shm_complete) {
+        while(!XCheckIfEvent(x_display, &x_event, check_for_shm_proc, NULL)) {}
+        shm_complete = true;
+    }
+
     memset(x_buffer->data, clear_color, WINDOW_WIDTH * WINDOW_HEIGHT * 4);
 }
 
@@ -350,10 +359,6 @@ void XF_DrawRect(int x, int y, int w, int h, uint32_t color, boolean outline) {
     }
 }
 
-Bool check_for_shm_proc(Display* display, XEvent* event, XPointer arg) {
-    return (event->type == x_shm_completion);
-}
-
 XF_Timer dt_messure;
 
 double XF_GetDeltaTime() {
@@ -362,14 +367,8 @@ double XF_GetDeltaTime() {
 
 void XF_Render() {
     XShmPutImage(x_display, x_window, x_gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);
-
-    while(!XCheckIfEvent(x_display, &x_event, check_for_shm_proc, NULL)) {}
+    shm_complete = false;
 
     XF_StopTimer(&dt_messure);
     XF_StartTimer(&dt_messure);
-
-    /*shm_complete = false;
-    do {
-        XF_ProcessEvents();
-    } while(!shm_complete);*/
 }

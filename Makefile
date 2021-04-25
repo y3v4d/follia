@@ -27,6 +27,7 @@ compile: $(OBJ)
 	@make -C examples/mouse -f Makefile compile
 	@make -C examples/text -f Makefile compile
 	@make -C examples/space-invaders -f Makefile compile
+	@make -C tests -f Makefile compile
 
 clean:
 	@echo "Cleaning up..."
@@ -51,3 +52,7 @@ examples/text:
 examples/space-invaders:
 	@echo "Running space-invaders example..."
 	@./build/examples/space-invaders/space-invaders
+
+tests/fps_test:
+	@echo "Running fps_test test..."
+	@./build/tests/fps_test
