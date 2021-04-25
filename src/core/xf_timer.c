@@ -7,7 +7,7 @@ void XF_StartTimer(XF_Timer* timer) {
         return;
     }
 
-    clock_gettime(CLOCK_REALTIME, &timer->start);
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer->start);
 }
 
 void XF_StopTimer(XF_Timer* timer) {
@@ -16,16 +16,12 @@ void XF_StopTimer(XF_Timer* timer) {
         return;
     }
 
-    clock_gettime(CLOCK_REALTIME, &timer->end);
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer->end);
 
     struct timespec delta;
     delta.tv_sec = timer->end.tv_sec - timer->start.tv_sec;
     delta.tv_nsec = timer->end.tv_nsec - timer->start.tv_nsec;
 
-    if(delta.tv_nsec < 0) {
-        delta.tv_nsec += 1000000000;
-        --delta.tv_sec;
-    }
-
-    timer->delta = delta.tv_sec * 1000 + (double)delta.tv_nsec / 1000000;
+    timer->delta = (timer->end.tv_sec - timer->start.tv_sec) * 1e6 + (timer->end.tv_nsec - timer->start.tv_nsec) / 1e3;
+    timer->delta /= 1000;
 }

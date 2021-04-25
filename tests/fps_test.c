@@ -24,8 +24,10 @@ int main() {
         while(XF_GetEvent(&event)) {}
 
         XF_StopTimer(&delta_timer);
-        snprintf(fps_text, 64, "MS: %f\nFPS: %f", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime());
-        XF_StartTimer(&delta_timer);
+        if(delta_timer.delta >= 800) {
+            snprintf(fps_text, 64, "MS: %f\nFPS: %f\nSec: %ld\nN: %ld", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime(), delta_timer.end.tv_nsec - delta_timer.start.tv_nsec, delta_timer.end.tv_sec - delta_timer.start.tv_sec);
+            XF_StartTimer(&delta_timer);
+        }
 
         XF_ClearScreen();
         XF_DrawText(10, 10, fps_text, 64, XF_GetWindowWidth(), bitocra_39);

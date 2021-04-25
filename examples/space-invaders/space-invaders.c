@@ -46,11 +46,14 @@ int main() {
 
     XF_Texture* ship_texture = XF_LoadBMP("data/space-invaders/ship.bmp");
     XF_Texture* alien0_texture = XF_LoadBMP("data/space-invaders/alien0.bmp");
-    if(!ship_texture || !alien0_texture) {
+    XF_Texture* alien1_texture = XF_LoadBMP("data/space-invaders/alien1.bmp");
+    if(!ship_texture || !alien0_texture || !alien1_texture) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't load images!\n");
 
         if(ship_texture) XF_FreeTexture(ship_texture);
         if(alien0_texture) XF_FreeTexture(alien0_texture);
+        if(alien1_texture) XF_FreeTexture(alien1_texture);
+
         XF_FreeFontBDF(knxt_font);
 
         XF_Close();
@@ -87,9 +90,13 @@ int main() {
     }
 
     int aliens_on_bottom = ALIENS_HOR;
+    boolean alien_walk_animation = false;
 
     XF_Timer alien_timer;
     XF_StartTimer(&alien_timer);
+
+    XF_Timer alien_walk_timer;
+    XF_StartTimer(&alien_walk_timer);
 
     XF_SetClearColor(0);
     XF_SetTextColor(0xffffff);
@@ -181,6 +188,10 @@ int main() {
             }
         }
 
+        if(player.x > XF_GetWindowWidth()) {
+            player.x = -player.w;
+        }
+
         if(bullets[1] != NULL) {
             bullets[1]->y += bullets[1]->v;
 
@@ -223,12 +234,21 @@ int main() {
             }
         }
 
+        XF_StopTimer(&alien_walk_timer);
+        if(alien_walk_timer.delta >= 500) {
+            alien_walk_animation = !alien_walk_animation;
+            XF_StartTimer(&alien_walk_timer);
+        }
+
         XF_ClearScreen();
         for(int i = 0; i < 2; ++i)
             if(bullets[i] != NULL) XF_DrawRect(bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h, 0xffffff, false);
 
-        for(int i = 0; i < TOTAL_ALIENS; ++i)
-            if(aliens[i] != NULL) XF_DrawTexture(alien0_texture, aliens[i]->x, aliens[i]->y);
+        for(int i = 0; i < TOTAL_ALIENS; ++i) {
+            if(aliens[i] != NULL) {
+                XF_DrawTexture((!alien_walk_animation ? alien0_texture : alien1_texture), aliens[i]->x, aliens[i]->y);
+            }
+        }
 
         XF_DrawTexture(ship_texture, player.x, player.y);
 
@@ -242,7 +262,8 @@ int main() {
     XF_FreeFontBDF(knxt_font);
     XF_FreeTexture(ship_texture);
     XF_FreeTexture(alien0_texture);
-
+    XF_FreeTexture(alien1_texture);
+    
     XF_Close();
     return 0;
 }
