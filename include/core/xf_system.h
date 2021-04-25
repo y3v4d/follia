@@ -12,10 +12,10 @@
  *
  * width, height - dimensions of the window
  */
-boolean XF_Initialize(int width, int height); // only software renderer
+XF_Bool XF_Initialize(int width, int height); // only software renderer
 void XF_Close();
 
-boolean XF_WindowShouldClose();
+XF_Bool XF_WindowShouldClose();
 
 /*
  * XF_GetEvent
@@ -26,7 +26,7 @@ boolean XF_WindowShouldClose();
  * 
  * Returns true if there was event in queue, or false if wasn't
  */
-boolean XF_GetEvent(XF_Event* event);
+XF_Bool XF_GetEvent(XF_Event* event);
 
 /*
  * For now, system won't check if the window change the size.
@@ -60,7 +60,7 @@ void XF_ClearScreen();
  */
 void XF_DrawPoint(int x, int y, uint32_t color);
 void XF_DrawLine(int x1, int y1, int x2, int y2, uint32_t color); // to upgrade
-void XF_DrawRect(int x, int y, int w, int h, uint32_t color, boolean outline); // to upgrade
+void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool outline); // to upgrade
 void XF_Render();
 
 #endif

@@ -13,7 +13,7 @@ enum XF_LogType {
 };
 
 // User don't have to invoke that function if the XF_LOG_ENABLED is set to 1.
-boolean XF_InitializeLog();
+XF_Bool XF_InitializeLog();
 
 /*
  * XF_WriteLog

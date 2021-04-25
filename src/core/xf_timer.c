@@ -18,10 +18,5 @@ void XF_StopTimer(XF_Timer* timer) {
 
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer->end);
 
-    struct timespec delta;
-    delta.tv_sec = timer->end.tv_sec - timer->start.tv_sec;
-    delta.tv_nsec = timer->end.tv_nsec - timer->start.tv_nsec;
-
-    timer->delta = (timer->end.tv_sec - timer->start.tv_sec) * 1e6 + (timer->end.tv_nsec - timer->start.tv_nsec) / 1e3;
-    timer->delta /= 1000;
+    timer->delta = (timer->end.tv_sec - timer->start.tv_sec) * 1e3 + (timer->end.tv_nsec - timer->start.tv_nsec) / 1e6;
 }

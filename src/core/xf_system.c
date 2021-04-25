@@ -37,11 +37,11 @@ uint32_t **h_lines = NULL;
 XShmSegmentInfo shm_info;
 
 int x_shm_completion; // determinate what's the type of shm completion event
-boolean shm_complete = true; // determinate if the shm finished its job
+XF_Bool shm_complete = true; // determinate if the shm finished its job
 
 Atom wm_delete_window;
 
-boolean x_window_close = false; // determinate if window should be closed
+XF_Bool x_window_close = false; // determinate if window should be closed
 
 int x_error_handler(Display *display, XErrorEvent *event) {
     char msg[256];
@@ -53,7 +53,7 @@ int x_error_handler(Display *display, XErrorEvent *event) {
     return 0;
 }
 
-boolean XF_Initialize(int width, int height) {
+XF_Bool XF_Initialize(int width, int height) {
     if(!XF_InitializeLog()) {
         printf("[ERROR] No messages will be written to log file\n");
     }
@@ -222,12 +222,12 @@ void XF_Close() {
 int XF_GetWindowWidth() { return WINDOW_WIDTH; }
 int XF_GetWindowHeight() { return WINDOW_HEIGHT; }
 
-boolean XF_WindowShouldClose() { return x_window_close; }
+XF_Bool XF_WindowShouldClose() { return x_window_close; }
 
 int recent_button = 0; // stores pressed button for the motion event (for some reason
                        // motion event doesn't know what button is pressed, always contains 0)
 
-boolean XF_GetEvent(XF_Event* pevent) {
+XF_Bool XF_GetEvent(XF_Event* pevent) {
     int pending = XPending(x_display);
 
     if(pending) {
@@ -306,7 +306,7 @@ void XF_ClearScreen() {
     memset(x_buffer->data, clear_color, WINDOW_WIDTH * WINDOW_HEIGHT * 4);
 }
 
-boolean range_check(int x, int y) {
+XF_Bool range_check(int x, int y) {
     return (x < 0 || x >= WINDOW_WIDTH || y < 0 || y >= WINDOW_HEIGHT);
 }
 
@@ -333,7 +333,7 @@ void XF_DrawLine(int x1, int y1, int x2, int y2, uint32_t color) {
     }
 }
 
-void XF_DrawRect(int x, int y, int w, int h, uint32_t color, boolean outline) {
+void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool outline) {
     if(x >= WINDOW_WIDTH || y >= WINDOW_HEIGHT || x + w <= 0 || y + h <= 0) return;
 
     if(x < 0) {

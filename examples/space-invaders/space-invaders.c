@@ -15,7 +15,7 @@ struct Object {
     float v;
 
     int lives;
-    boolean is_bottom;
+    XF_Bool is_bottom;
 };
 
 struct Object* create_bullet(float x, float y) {
@@ -90,7 +90,7 @@ int main() {
     }
 
     int aliens_on_bottom = ALIENS_HOR;
-    boolean alien_walk_animation = false;
+    XF_Bool alien_walk_animation = false;
 
     XF_Timer alien_timer;
     XF_StartTimer(&alien_timer);
@@ -148,7 +148,7 @@ int main() {
                     // assign bottom to another alien, or substract aliens_on_bottom when there are no more aliens behind
                     if(aliens[i]->is_bottom) {
                         int new_bottom = i - ALIENS_HOR; 
-                        boolean success = false;
+                        XF_Bool success = false;
                         
                         while(new_bottom >= 0) {
                             if(aliens[new_bottom] != NULL) {

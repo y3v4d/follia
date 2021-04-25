@@ -6,9 +6,9 @@
 
 FILE *log_file = NULL;
 char path[64];
-boolean initialized = false;
+XF_Bool initialized = false;
 
-boolean XF_InitializeLog() {
+XF_Bool XF_InitializeLog() {
     if(!XF_LOG_ENABLED) return true;
 
     if(initialized) {

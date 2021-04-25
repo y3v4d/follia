@@ -10,7 +10,7 @@ OBJ := $(SRC:src/%.c=build/src/%.o)
 
 export PROJECT_DIRECTORY
 
-.PHONY: compile clean examples/snake examples/scalable examples/mouse examples/text examples/space-invaders
+.PHONY: compile clean examples/snake examples/scalable examples/mouse examples/text examples/space-invaders examples/primitives
 
 build/src/%.o: src/%.c
 	@echo "Compiling shared library $<..."
@@ -27,6 +27,7 @@ compile: $(OBJ)
 	@make -C examples/mouse -f Makefile compile
 	@make -C examples/text -f Makefile compile
 	@make -C examples/space-invaders -f Makefile compile
+	@make -C examples/primitives -f Makefile compile
 	@make -C tests -f Makefile compile
 
 clean:
@@ -52,6 +53,10 @@ examples/text:
 examples/space-invaders:
 	@echo "Running space-invaders example..."
 	@./build/examples/space-invaders/space-invaders
+
+examples/primitives:
+	@echo "Running primitves example..."
+	@./build/examples/primitives/primitives
 
 tests/fps_test:
 	@echo "Running fps_test test..."
