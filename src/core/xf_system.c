@@ -10,6 +10,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xproto.h>
 // using shm functions instead of regular is faster (software rendering)
+// UPDATE (25.04.2021)
+// regular XPutImage function seems to be much faster and stable on modern systems (don't use shm on default)
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
@@ -17,6 +19,8 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
+
+#define X_USE_SHM 0
 
 short WINDOW_WIDTH = 100, WINDOW_HEIGHT = 100;
 
@@ -139,37 +143,46 @@ boolean XF_Initialize(int width, int height) {
     x_gc = XCreateGC(x_display, x_window, 0, &x_gc_values);
     XF_WriteLog(XF_LOG_INFO, "Successfully created graphics context\n");
 
-    if(!XShmQueryExtension(x_display)) {
-        XF_WriteLog(XF_LOG_ERROR, "System doesn't support shared-memory extension!\n");
-        return false;
+    if(X_USE_SHM) {
+        if(!XShmQueryExtension(x_display)) {
+            XF_WriteLog(XF_LOG_ERROR, "System doesn't support shared-memory extension!\n");
+            return false;
+        }
+
+        x_buffer = XShmCreateImage(x_display, x_visual, XDefaultDepth(x_display, x_screen), ZPixmap, NULL, &shm_info, WINDOW_WIDTH, WINDOW_HEIGHT);
+        if(!x_buffer) {
+            XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for shared-memory buffer!\n");
+            return false;
+        }
+
+        shm_info.shmid = shmget(IPC_PRIVATE, x_buffer->bytes_per_line * x_buffer->height, IPC_CREAT|0777);
+        if(shm_info.shmid == -1) {
+            XF_WriteLog(XF_LOG_ERROR, "Couldn't get new shared memory id!\n");
+            return false;
+        }
+
+        shm_info.shmaddr = x_buffer->data = shmat(shm_info.shmid, 0, 0);
+        if(shm_info.shmaddr == (void*)-1) {
+            XF_WriteLog(XF_LOG_ERROR, "Couldn't attach shared memory segment to the calling process!\n");
+            return false;
+        }
+
+        shm_info.readOnly = False;
+
+        if(!XShmAttach(x_display, &shm_info)) {
+            XF_WriteLog(XF_LOG_ERROR, "Couldn't attach server to shared-memory segment!\n");
+            return false;
+        }
+
+        x_shm_completion = XShmGetEventBase(x_display) + ShmCompletion;
+    } else {
+        x_buffer = XCreateImage(x_display, x_visual, XDefaultDepth(x_display, x_screen), ZPixmap, 0, (char*)malloc(WINDOW_WIDTH * WINDOW_HEIGHT * 4), WINDOW_WIDTH, WINDOW_HEIGHT, 32, 0);
+
+        if(!x_buffer) {
+            XF_WriteLog(XF_LOG_ERROR, "Couldn't create XImage structure!\n");
+            return false;
+        }
     }
-
-    x_buffer = XShmCreateImage(x_display, x_visual, XDefaultDepth(x_display, x_screen), ZPixmap, NULL, &shm_info, WINDOW_WIDTH, WINDOW_HEIGHT);
-    if(!x_buffer) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for shared-memory buffer!\n");
-        return false;
-    }
-
-    shm_info.shmid = shmget(IPC_PRIVATE, x_buffer->bytes_per_line * x_buffer->height, IPC_CREAT|0777);
-    if(shm_info.shmid == -1) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't get new shared memory id!\n");
-        return false;
-    }
-
-    shm_info.shmaddr = x_buffer->data = shmat(shm_info.shmid, 0, 0);
-    if(shm_info.shmaddr == (void*)-1) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't attach shared memory segment to the calling process!\n");
-        return false;
-    }
-
-    shm_info.readOnly = False;
-
-    if(!XShmAttach(x_display, &shm_info)) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't attach server to shared-memory segment!\n");
-        return false;
-    }
-
-    x_shm_completion = XShmGetEventBase(x_display) + ShmCompletion;
 
     // allocate memory for shortcut table of rows
     h_lines = (uint32_t**)malloc(WINDOW_HEIGHT * sizeof(uint32_t*));
@@ -187,15 +200,17 @@ boolean XF_Initialize(int width, int height) {
 void XF_Close() {
     //XAutoRepeatOn(x_display);
 
-    XShmDetach(x_display, &shm_info);
-    XDestroyImage(x_buffer);
-    if(shmdt(shm_info.shmaddr) == -1)
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't detach shared memory from the calling process!\n");
+    if(X_USE_SHM) {
+        XShmDetach(x_display, &shm_info);
+        XDestroyImage(x_buffer);
+        if(shmdt(shm_info.shmaddr) == -1)
+            XF_WriteLog(XF_LOG_ERROR, "Couldn't detach shared memory from the calling process!\n");
 
-    XSync(x_display, True);
+        XSync(x_display, True);
 
-    if(shmctl(shm_info.shmid, IPC_RMID, 0) == -1)
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't mark segment to be destroyed!\n");
+        if(shmctl(shm_info.shmid, IPC_RMID, 0) == -1)
+            XF_WriteLog(XF_LOG_ERROR, "Couldn't mark segment to be destroyed!\n");
+    } else XDestroyImage(x_buffer);
 
     free(h_lines);
 
@@ -266,7 +281,7 @@ boolean XF_GetEvent(XF_Event* pevent) {
                 if(x_event.xclient.data.l[0] == wm_delete_window)
                     x_window_close = true;
                 break;
-            default: if(x_event.type == x_shm_completion) shm_complete = true; break;
+            default: if(X_USE_SHM && x_event.type == x_shm_completion) shm_complete = true; break;
         }
     }
 
@@ -283,7 +298,7 @@ Bool check_for_shm_proc(Display* display, XEvent* event, XPointer arg) {
 }
 
 void XF_ClearScreen() {
-    if(!shm_complete) {
+    if(X_USE_SHM && !shm_complete) {
         while(!XCheckIfEvent(x_display, &x_event, check_for_shm_proc, NULL)) {}
         shm_complete = true;
     }
@@ -366,8 +381,12 @@ double XF_GetDeltaTime() {
 }
 
 void XF_Render() {
-    XShmPutImage(x_display, x_window, x_gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);
-    shm_complete = false;
+    if(X_USE_SHM) {
+        XShmPutImage(x_display, x_window, x_gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);
+        shm_complete = false;
+    } else {
+        XPutImage(x_display, x_window, x_gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    }
 
     XF_StopTimer(&dt_messure);
     XF_StartTimer(&dt_messure);
