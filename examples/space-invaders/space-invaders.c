@@ -225,7 +225,7 @@ int main() {
 
         XF_ClearScreen();
         for(int i = 0; i < 2; ++i)
-            if(bullets[i] != NULL) XF_DrawRect(bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h, 0xffff00, false);
+            if(bullets[i] != NULL) XF_DrawRect(bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h, 0xffffff, false);
 
         for(int i = 0; i < TOTAL_ALIENS; ++i)
             if(aliens[i] != NULL) XF_DrawTexture(alien0_texture, aliens[i]->x, aliens[i]->y);
