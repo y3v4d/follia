@@ -1,8 +1,12 @@
 #include "x11framework.h"
+#include "slider.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 #define MAIN_SPEED 0.9
+
+#define GRAVITY_SPEED 0.003
+#define GRAVITY_CAP 100
 
 enum PrimitiveType { PRIMITIVE_POINT = 0, PRIMITIVE_LINE = 1, PRIMITIVE_RECT = 2 };
 struct Primitive {
@@ -12,6 +16,10 @@ struct Primitive {
 
     enum PrimitiveType type;
 };
+
+float absf(float n) {
+    return (n >= 0 ? n : -n);
+}
 
 int main() {
     if(!XF_Initialize(640, 480))
@@ -31,8 +39,7 @@ int main() {
     char fps_text[64];
 
     struct Primitive main = { 10, 10, 64, 64, 0, 0, PRIMITIVE_RECT };
-
-    const int TOTAL_PRIMITIVES = 32;
+    struct Slider test_slider = { 100, 100, 100, 0.5f, false };
 
     XF_Event event;
     while(!XF_WindowShouldClose()) {
@@ -51,8 +58,12 @@ int main() {
                     case 'a': case 'd': main.vx = 0; break;
                     default: break;
                 }
+            } else if((event.type & XF_EVENT_MOUSE_PREFIX) == XF_EVENT_MOUSE_PREFIX) {
+                process_slider(&test_slider, &event.mouse);
             }
         }
+
+        main.x = (640 - main.w) * test_slider.progress;
 
         main.x += main.vx * XF_GetDeltaTime();
         main.y += main.vy * XF_GetDeltaTime();
@@ -65,6 +76,7 @@ int main() {
 
         XF_ClearScreen();
         XF_DrawRect(main.x, main.y, main.w, main.h, 0x00ff0000, false); 
+        draw_slider(&test_slider);
         XF_DrawText(10, 10, fps_text, 64, XF_GetWindowWidth(), knxt);
         XF_Render();
     }

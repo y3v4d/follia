@@ -81,7 +81,7 @@ int main() {
         aliens[i]->h = (float)alien0_texture->height;
 
         aliens[i]->x = (i % ALIENS_HOR) * (aliens[i]->w + ALIENS_GAP); 
-        aliens[i]->y = (i / ALIENS_HOR) * (aliens[i]->h * 1.5f);
+        aliens[i]->y = (int)(i / ALIENS_HOR) * (aliens[i]->h * 1.5f);
 
         aliens[i]->v = 0.05f;
 

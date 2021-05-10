@@ -103,15 +103,15 @@ XF_Bool XF_Initialize(int width, int height) {
 
     XF_WriteLog(XF_LOG_INFO, "Creating window...\n");
     x_window = XCreateWindow(x_display,                               // display
-                           XRootWindow(x_display, x_screen),          // parent window
-                           0, 0,                                      // x, y coordinates
-                           WINDOW_WIDTH, WINDOW_HEIGHT,               // width, height
-                           0,                                         // border width
-                           XDefaultDepth(x_display, x_screen),        // depth
-                           InputOutput,                               // class
-                           x_visual,                                  // visual
-                           CWBackPixel | CWBorderPixel | CWEventMask, // attributes mask
-                           &x_window_attr);                           // attributes
+                             XRootWindow(x_display, x_screen),          // parent window
+                             0, 0,                                      // x, y coordinates
+                             WINDOW_WIDTH, WINDOW_HEIGHT,               // width, height
+                             0,                                         // border width
+                             XDefaultDepth(x_display, x_screen),        // depth
+                             InputOutput,                               // class
+                             x_visual,                                  // visual
+                             CWBackPixel | CWBorderPixel | CWEventMask, // attributes mask
+                             &x_window_attr);                           // attributes
 
     // WM_CLASS setup
     XClassHint *class_hint = XAllocClassHint();
@@ -176,7 +176,15 @@ XF_Bool XF_Initialize(int width, int height) {
 
         x_shm_completion = XShmGetEventBase(x_display) + ShmCompletion;
     } else {
-        x_buffer = XCreateImage(x_display, x_visual, XDefaultDepth(x_display, x_screen), ZPixmap, 0, (char*)malloc(WINDOW_WIDTH * WINDOW_HEIGHT * 4), WINDOW_WIDTH, WINDOW_HEIGHT, 32, 0);
+        x_buffer = XCreateImage(x_display, 
+                                x_visual, 
+                                XDefaultDepth(x_display, x_screen), 
+                                ZPixmap, 
+                                0, 
+                                (char*)malloc(WINDOW_WIDTH * WINDOW_HEIGHT * 4), 
+                                WINDOW_WIDTH, WINDOW_HEIGHT, 
+                                32, 
+                                0);
 
         if(!x_buffer) {
             XF_WriteLog(XF_LOG_ERROR, "Couldn't create XImage structure!\n");
