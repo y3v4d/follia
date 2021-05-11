@@ -11,7 +11,7 @@ struct Slider {
     XF_Bool focused;
 };
 
-void process_slider(struct Slider* slider, const XF_MouseEvent* mouse);
-void draw_slider(const struct Slider* slider);
+void process_slider(struct Slider *slider, const XF_MouseEvent *mouse);
+void draw_slider(const struct Slider *slider);
 
 #endif

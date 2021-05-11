@@ -6,13 +6,14 @@ LIBS := -lm -lX11 -lXext
 
 INC := -I include
 SRC := $(shell find src -type f -name *.c)
+DEPS := $(shell find include -type f -name *.h)
 OBJ := $(SRC:src/%.c=build/src/%.o)
 
 export PROJECT_DIRECTORY
 
 .PHONY: compile clean examples/snake examples/scalable examples/mouse examples/text examples/space-invaders examples/primitives
 
-build/src/%.o: src/%.c
+build/src/%.o: src/%.c $(DEPS)
 	@echo "Compiling shared library $<..."
 	@mkdir -p $(dir $@)
 	@$(CC) -c -fPIC -o $@ $< $(INC) $(CFLAGS)

@@ -1,5 +1,6 @@
 #include "x11framework.h"
 #include "slider.h"
+#include "checkbox.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -13,6 +14,8 @@ struct Primitive {
     float x, y;
     float w, h;
     float vx, vy;
+
+    uint32_t color;
 
     enum PrimitiveType type;
 };
@@ -38,8 +41,10 @@ int main() {
 
     char fps_text[64];
 
-    struct Primitive main = { 10, 10, 64, 64, 0, 0, PRIMITIVE_RECT };
+    struct Primitive main = { 10, 10, 64, 64, 0, 0, 0xffff0000, PRIMITIVE_RECT };
     struct Slider test_slider = { 100, 100, 100, 0.5f, false };
+
+    struct CheckBox test_checkbox = { 200, 200, 24, 24, false };
 
     XF_Event event;
     while(!XF_WindowShouldClose()) {
@@ -60,6 +65,7 @@ int main() {
                 }
             } else if((event.type & XF_EVENT_MOUSE_PREFIX) == XF_EVENT_MOUSE_PREFIX) {
                 process_slider(&test_slider, &event.mouse);
+                process_checkbox(&test_checkbox, &event.mouse);
             }
         }
 
@@ -68,6 +74,9 @@ int main() {
         main.x += main.vx * XF_GetDeltaTime();
         main.y += main.vy * XF_GetDeltaTime();
 
+        if(test_checkbox.checked) main.color = 0xff0000ff;
+        else main.color = 0xffff0000;
+
         XF_StopTimer(&delta_timer);
         if(delta_timer.delta >= 800) {
             snprintf(fps_text, 64, "MS: %f\nFPS: %f", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime());
@@ -75,8 +84,9 @@ int main() {
         }
 
         XF_ClearScreen();
-        XF_DrawRect(main.x, main.y, main.w, main.h, 0x00ff0000, false); 
+        XF_DrawRect(main.x, main.y, main.w, main.h, main.color, false); 
         draw_slider(&test_slider);
+        draw_checkbox(&test_checkbox);
         XF_DrawText(10, 10, fps_text, 64, XF_GetWindowWidth(), knxt);
         XF_Render();
     }

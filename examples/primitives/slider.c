@@ -1,6 +1,6 @@
 #include "slider.h"
 
-void process_slider(struct Slider* slider, const XF_MouseEvent* mouse) {
+void process_slider(struct Slider *slider, const XF_MouseEvent *mouse) {
     if(mouse->type == XF_EVENT_MOUSE_PRESSED && mouse->button == XF_MOUSE_BUTTON_1 && !slider->focused) {
         int expected_x = slider->x + slider->progress * slider->width;
 
@@ -16,7 +16,7 @@ void process_slider(struct Slider* slider, const XF_MouseEvent* mouse) {
     }
 }
 
-void draw_slider(const struct Slider* slider) {
+void draw_slider(const struct Slider *slider) {
     uint32_t color = (slider->focused ? 0xff444444 : 0xff666666);
 
     XF_DrawLine(slider->x, slider->y, slider->x + slider->width, slider->y, 0x00000000);
