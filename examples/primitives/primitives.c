@@ -1,6 +1,7 @@
 #include "x11framework.h"
 #include "slider.h"
 #include "checkbox.h"
+#include "selector.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,7 +10,6 @@
 #define GRAVITY_SPEED 0.003
 #define GRAVITY_CAP 100
 
-enum PrimitiveType { PRIMITIVE_POINT = 0, PRIMITIVE_LINE = 1, PRIMITIVE_RECT = 2 };
 struct Primitive {
     float x, y;
     float w, h;
@@ -46,6 +46,9 @@ int main() {
 
     struct CheckBox test_checkbox = { 200, 200, 24, 24, false };
 
+    struct PrimitiveSelector test_selector = { 300, 300, 50, 30 };
+    initialize_selector(&test_selector);
+
     XF_Event event;
     while(!XF_WindowShouldClose()) {
         while(XF_GetEvent(&event)) {
@@ -66,6 +69,7 @@ int main() {
             } else if((event.type & XF_EVENT_MOUSE_PREFIX) == XF_EVENT_MOUSE_PREFIX) {
                 process_slider(&test_slider, &event.mouse);
                 process_checkbox(&test_checkbox, &event.mouse);
+                process_selector(&test_selector, &event.mouse);
             }
         }
 
@@ -77,6 +81,8 @@ int main() {
         if(test_checkbox.checked) main.color = 0xff0000ff;
         else main.color = 0xffff0000;
 
+        if(test_selector.recent_change) main.type = test_selector.current_option;
+
         XF_StopTimer(&delta_timer);
         if(delta_timer.delta >= 800) {
             snprintf(fps_text, 64, "MS: %f\nFPS: %f", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime());
@@ -84,9 +90,14 @@ int main() {
         }
 
         XF_ClearScreen();
-        XF_DrawRect(main.x, main.y, main.w, main.h, main.color, false); 
+
+        if(main.type == PRIMITIVE_RECT) XF_DrawRect(main.x, main.y, main.w, main.h, main.color, false); 
+        else if(main.type == PRIMITIVE_LINE) XF_DrawLine(main.x, main.y, main.x + main.w, main.y + main.h, main.color);
+
         draw_slider(&test_slider);
         draw_checkbox(&test_checkbox);
+        draw_selector(&test_selector);
+
         XF_DrawText(10, 10, fps_text, 64, XF_GetWindowWidth(), knxt);
         XF_Render();
     }
