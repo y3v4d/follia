@@ -49,6 +49,14 @@ int main() {
     struct PrimitiveSelector test_selector = { 300, 300, 50, 30 };
     initialize_selector(&test_selector);
 
+    XF_Texture* instruction_texture = XF_LoadBMP("data/instruction.bmp");
+    if(!instruction_texture) {
+        XF_FreeFontBDF(knxt);
+        XF_Close();
+
+        return -1;
+    }
+
     XF_Event event;
     while(!XF_WindowShouldClose()) {
         while(XF_GetEvent(&event)) {
@@ -91,17 +99,21 @@ int main() {
 
         XF_ClearScreen();
 
-        if(main.type == PRIMITIVE_RECT) XF_DrawRect(main.x, main.y, main.w, main.h, main.color, false); 
-        else if(main.type == PRIMITIVE_LINE) XF_DrawLine(main.x, main.y, main.x + main.w, main.y + main.h, main.color);
+        //if(main.type == PRIMITIVE_RECT) XF_DrawRect(main.x, main.y, main.w, main.h, main.color, false); 
+        //else if(main.type == PRIMITIVE_LINE) XF_DrawLine(main.x, main.y, main.x + main.w, main.y + main.h, main.color);
+        XF_DrawCircle(main.x, main.y + 100, 25, main.color, true);
+        XF_DrawLine(0, 0, 200, 0, 0xffff0000);
 
         draw_slider(&test_slider);
         draw_checkbox(&test_checkbox);
         draw_selector(&test_selector);
 
         XF_DrawText(10, 10, fps_text, 64, XF_GetWindowWidth(), knxt);
+        XF_DrawTexture(instruction_texture, XF_GetWindowWidth() - instruction_texture->width, XF_GetWindowHeight() - instruction_texture->height);
         XF_Render();
     }
 
+    XF_FreeTexture(instruction_texture);
     XF_FreeFontBDF(knxt);
 
     XF_Close();

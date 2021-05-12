@@ -75,10 +75,14 @@ XF_Texture* XF_LoadBMP(const char *path) {
         fread(&temp->data[i], 3, 1, file);
     }
 
-    for(unsigned i = 0; i < size / 2; ++i) {
-        uint32_t swap = temp->data[i];
-        temp->data[i] = temp->data[size - 1 - i];
-        temp->data[size - 1 - i] = swap;
+    for(unsigned y = 0; y < temp->height / 2; ++y) {
+        for(unsigned x = 0; x < temp->width; ++x) {
+            const int start_y = y * temp->width;
+
+            uint32_t swap = temp->data[start_y + x];
+            temp->data[start_y + x] = temp->data[size - start_y - temp->width + x];
+            temp->data[size - start_y - temp->width + x] = swap;
+        }
     }
 
     if(feof(file)) {

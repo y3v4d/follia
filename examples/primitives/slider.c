@@ -19,7 +19,7 @@ void process_slider(struct Slider *slider, const XF_MouseEvent *mouse) {
 void draw_slider(const struct Slider *slider) {
     uint32_t color = (slider->focused ? 0xff444444 : 0xff666666);
 
-    XF_DrawLine(slider->x, slider->y, slider->x + slider->width, slider->y, 0x00000000);
+    XF_DrawLine(slider->x, slider->y, slider->x + slider->width - 1, slider->y, 0x00000000);
     XF_DrawRect(slider->x + slider->progress * slider->width - 5, slider->y - 10, 10, 20, color, false);
     XF_DrawRect(slider->x + slider->progress * slider->width - 5, slider->y - 10, 10, 20, 0, true);
 }

@@ -315,29 +315,95 @@ void XF_ClearScreen() {
 }
 
 XF_Bool range_check(int x, int y) {
-    return (x < 0 || x >= WINDOW_WIDTH || y < 0 || y >= WINDOW_HEIGHT);
+    return (x >= 0 && x < WINDOW_WIDTH && y >= 0 && y < WINDOW_HEIGHT);
 }
 
 void XF_DrawPoint(int x, int y, uint32_t color) {
     *(h_lines[y] + x) = color;
 }
 
-void XF_DrawLine(int x1, int y1, int x2, int y2, uint32_t color) {
-    if(x1 == x2) {
-        int step = (y1 < y2 ? 1 : -1);
-        for(int i = y1; i != y2; i += step)
-            XF_DrawPoint(x1, i, color);
-    } else if(y1 == y2) {
-        int step = (x1 < x2 ? 1 : -1);
-        for(int i = x1; i != x2; i += step)
-            XF_DrawPoint(i, y1, color);
-    } else {
-        float m = (float)(y1 - y2) / (x1 - x2);
-        float c = y1 - m * x1;
+// only for x0 < x1 !!!
+void _plot_line_low(int x0, int y0, int x1, int y1, uint32_t color) {
+    const int dx = x1 - x0;
+    int dy = y1 - y0;
 
-        int step = (x1 < x2 ? 1 : -1);
-        for(int i = x1; i != x2; i += step)
-            XF_DrawPoint(i, (int)(m * i + c), color);
+    int yi = 1;
+
+    // determinate if line is going up or down
+    if(dy < 0) {
+        yi = -1;
+        dy = -dy;
+    }
+
+    int d = 2 * dy - dx; // initial value D = A + B / 2, where A = dy B = -dy
+                         // to delete the need for division, just multiplicate by 2
+
+    int cy = y0;
+
+    for(int i = x0; i <= x1; ++i) {
+        XF_DrawPoint(i, cy, color);
+
+        if(d > 0) {
+            cy += yi;
+            d += 2 * (dy - dx);
+        } else d += 2 * dy;
+    }
+}
+
+// only for y0 < y1 !!!
+void _plot_line_high(int x0, int y0, int x1, int y1, uint32_t color) {
+    int dx = x1 - x0;
+    const int dy = y1 - y0;
+
+    int xi = 1;
+
+    if(dx < 0) {
+        xi = -1;
+        dx = -dx;
+    }
+
+    int d = 2 * dx - dy; // D = A + B / 2, where A = dx B = -dy
+
+    int cx = x0;
+
+    for(int i = y0; i <= y1; ++i) {
+        XF_DrawPoint(cx, i, color);
+
+        if(d > 0) {
+            cx += xi;
+            d += 2 * (dx - dy);
+        } else d += 2 * dx;
+    }
+}
+
+void XF_DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
+    // fast implementation for straight lines
+    if(y0 == y1) {
+        int sx = (x0 < x1 ? 1 : -1);
+        while(x0 != x1) {
+            XF_DrawPoint(x0, y0, color);
+            x0 += sx;
+        }
+
+        return;
+    }
+    if(x0 == x1) {
+        int sy = (y0 < y1 ? 1 : -1);
+        while(y0 != y1) {
+            XF_DrawPoint(x0, y0, color);
+            y0 += sy;
+        }
+
+        return;
+    }
+
+    // using bresenham algorithm
+    if(abs(x1 - x0) > abs(y1 - y0)) {
+        if(x0 < x1) _plot_line_low(x0, y0, x1, y1, color);
+        else _plot_line_low(x1, y1, x0, y0, color);
+    } else {
+        if(y0 < y1) _plot_line_high(x0, y0, x1, y1, color);
+        else _plot_line_high(x1, y1, x0, y0, color);
     }
 }
 
@@ -375,10 +441,65 @@ void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool outline) {
             s += WINDOW_WIDTH - w;
         }
     } else {
-        XF_DrawLine(x, y, x + w, y, color);
-        XF_DrawLine(x, y + h - 1, x + w, y + h - 1, color);
-        XF_DrawLine(x, y, x, y + h, color);
-        XF_DrawLine(x + w - 1, y, x + w - 1, y + h, color);
+        XF_DrawLine(x, y, x + w - 1, y, color);
+        XF_DrawLine(x, y + h - 1, x + w - 1, y + h - 1, color);
+        XF_DrawLine(x, y, x, y + h - 1, color);
+        XF_DrawLine(x + w - 1, y, x + w - 1, y + h - 1, color);
+    }
+}
+
+void draw_point_in_range(int x, int y, uint32_t color) {
+    if(range_check(x, y)) XF_DrawPoint(x, y, color);
+}
+
+void XF_DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color, XF_Bool outline) {
+    
+}
+
+void XF_DrawCircle(int x, int y, int r, uint32_t color, XF_Bool fill) {
+    // using bresenham circle algorithm (int)
+    int x_change = 1 - 2 * r; // 1 - 2 * xn
+    int y_change = 1;         // 2 * yn + 1
+    int radius_error = 0;     // xn^2 + yn^2 - r^2
+
+    int px = r;
+    int py = 0;
+
+    while (px >= py) {
+        // plot
+        draw_point_in_range(x + px, y - py, color);
+        draw_point_in_range(x + py, y - px, color);
+        draw_point_in_range(x - py, y - px, color);
+        draw_point_in_range(x - px, y - py, color);
+        draw_point_in_range(x - px, y + py, color);
+        draw_point_in_range(x - py, y + px, color);
+        draw_point_in_range(x + py, y + px, color);
+        draw_point_in_range(x + px, y + py, color);
+
+        if(fill) {
+            // fill
+            for(int i = x - px + 1; i < x + px; ++i) {
+                draw_point_in_range(i, y - py, color);
+                draw_point_in_range(i, y + py, color);
+            }
+
+            for(int i = x - py + 1; i < x + py; ++i) {
+                draw_point_in_range(i, y - px, color);
+                draw_point_in_range(i, y + px, color);
+            }
+        }
+
+        ++py;
+        radius_error += y_change;
+        y_change += 2;
+
+        // determinate if x needs to be changed, eq: 2 * [xn^2 + yn^2 - r^2 + (2 * yn + 1)] + (1 - 2 * xn) > 0
+        if(2 * radius_error + x_change > 0) {
+            --px;
+            radius_error += x_change;
+
+            x_change += 2;
+        }
     }
 }
 

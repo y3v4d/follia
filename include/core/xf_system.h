@@ -60,7 +60,9 @@ void XF_ClearScreen();
  */
 void XF_DrawPoint(int x, int y, uint32_t color);
 void XF_DrawLine(int x1, int y1, int x2, int y2, uint32_t color); // to upgrade
+void XF_DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color, XF_Bool outline);
 void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool outline); // to upgrade
+void XF_DrawCircle(int x, int y, int r, uint32_t color, XF_Bool fill);
 void XF_Render();
 
 #endif
