@@ -110,6 +110,7 @@ int main() {
 
         XF_DrawText(10, 10, fps_text, 64, XF_GetWindowWidth(), knxt);
         XF_DrawTexture(instruction_texture, XF_GetWindowWidth() - instruction_texture->width, XF_GetWindowHeight() - instruction_texture->height);
+        XF_DrawTriangle(200, 200, 250, 150, 300, 200, 0xff0000ff, false);
         XF_Render();
     }
 

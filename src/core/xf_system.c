@@ -452,8 +452,80 @@ void draw_point_in_range(int x, int y, uint32_t color) {
     if(range_check(x, y)) XF_DrawPoint(x, y, color);
 }
 
-void XF_DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color, XF_Bool outline) {
-    
+void _draw_sorted_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool outline) {
+    int dx01 = x1 - x0;
+    int dx02 = x2 - x0;
+
+    int dy01 = -abs(y1 - y0);
+    int sy01 = (y0 < y1 ? 1 : -1);
+    int dy02 = -abs(y2 - y0);
+    int sy02 = (y0 < y2 ? 1 : -1);
+
+    int err01 = dx01 + dy01;
+    int err02 = dx02 + dy02;
+
+    int x01 = x0;
+    int x02 = x0;
+
+    int y01 = y0;
+    int y02 = y0;
+
+    while(true) {
+        draw_point_in_range(x02, y02, color);
+
+        if(x02 == x2 && y02 == y2) break;
+
+        if(x01 == x1 && y01 == y1) {
+            dx01 = x2 - x1;
+            dy01 = -abs(y2 - y1);
+
+            sy01 = (y1 < y2 ? 1 : -1);
+            err01 = dx01 + dy01;
+        }
+
+        int e2 = err02 * 2;
+        if(e2 <= dx02) {
+            err02 += dx02;
+            y02 += sy02;
+        }
+        if(e2 >= dy02) {
+            err02 += dy02;
+            ++x02;
+
+            while(x02 != x01) {
+                int ee2 = err01 * 2;
+                if(ee2 >= dy01) {
+                    err01 += dy01;
+                    ++x01;
+                }
+                if(ee2 <= dx01) {
+                    err01 += dx01;
+                    y01 += sy01;
+                }
+
+                draw_point_in_range(x01, y01, color);
+            }
+
+            XF_DrawLine(x01, y01, x02, y02, color);
+        }
+    }
+}
+
+void XF_DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool outline) {
+    // determinate far left point
+    if(x0 > x1 || x0 > x2) {
+        if(x1 < x2) {
+            if(x0 < x2) _draw_sorted_triangle(x1, y1, x0, y0, x2, y2, color, outline);
+            else _draw_sorted_triangle(x1, y1, x2, y2, x0, y0, color, outline);
+        }
+        else {
+            if(x0 < x1) _draw_sorted_triangle(x2, y2, x0, y0, x1, y2, color, outline);
+            else _draw_sorted_triangle(x2, y2, x1, y1, x0, y1, color, outline);
+        }
+    } else {
+        if(x1 < x2) _draw_sorted_triangle(x0, y0, x1, y1, x2, y2, color, outline);
+        else _draw_sorted_triangle(x0, y0, x2, y2, x1, y1, color, outline);
+    }
 }
 
 void XF_DrawCircle(int x, int y, int r, uint32_t color, XF_Bool fill) {
