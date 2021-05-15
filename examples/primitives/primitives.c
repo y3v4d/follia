@@ -99,8 +99,8 @@ int main() {
 
         XF_ClearScreen();
 
-        //if(main.type == PRIMITIVE_RECT) XF_DrawRect(main.x, main.y, main.w, main.h, main.color, false); 
-        //else if(main.type == PRIMITIVE_LINE) XF_DrawLine(main.x, main.y, main.x + main.w, main.y + main.h, main.color);
+        if(main.type == PRIMITIVE_RECT) XF_DrawRect(main.x, main.y, main.w, main.h, main.color, false); 
+        else if(main.type == PRIMITIVE_LINE) XF_DrawLine(main.x, main.y, main.x + main.w, main.y + main.h, main.color);
         XF_DrawCircle(main.x, main.y + 100, 25, main.color, true);
         XF_DrawLine(0, 0, 200, 0, 0xffff0000);
 
@@ -110,7 +110,7 @@ int main() {
 
         XF_DrawText(10, 10, fps_text, 64, XF_GetWindowWidth(), knxt);
         XF_DrawTexture(instruction_texture, XF_GetWindowWidth() - instruction_texture->width, XF_GetWindowHeight() - instruction_texture->height);
-        XF_DrawTriangle(200, 200, 250, 150, 300, 200, 0xff0000ff, false);
+        XF_DrawTriangle(200, 300, 400, 300, 400, 200, 0xffff0000, true);
         XF_Render();
     }
 

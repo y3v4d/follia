@@ -322,6 +322,10 @@ void XF_DrawPoint(int x, int y, uint32_t color) {
     *(h_lines[y] + x) = color;
 }
 
+void draw_point_in_range(int x, int y, uint32_t color) {
+    if(range_check(x, y)) XF_DrawPoint(x, y, color);
+}
+
 // only for x0 < x1 !!!
 void _plot_line_low(int x0, int y0, int x1, int y1, uint32_t color) {
     const int dx = x1 - x0;
@@ -341,7 +345,7 @@ void _plot_line_low(int x0, int y0, int x1, int y1, uint32_t color) {
     int cy = y0;
 
     for(int i = x0; i <= x1; ++i) {
-        XF_DrawPoint(i, cy, color);
+        draw_point_in_range(i, cy, color);
 
         if(d > 0) {
             cy += yi;
@@ -367,7 +371,7 @@ void _plot_line_high(int x0, int y0, int x1, int y1, uint32_t color) {
     int cx = x0;
 
     for(int i = y0; i <= y1; ++i) {
-        XF_DrawPoint(cx, i, color);
+        draw_point_in_range(cx, i, color);
 
         if(d > 0) {
             cx += xi;
@@ -381,7 +385,7 @@ void XF_DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
     if(y0 == y1) {
         int sx = (x0 < x1 ? 1 : -1);
         while(x0 != x1) {
-            XF_DrawPoint(x0, y0, color);
+            draw_point_in_range(x0, y0, color);
             x0 += sx;
         }
 
@@ -390,7 +394,7 @@ void XF_DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
     if(x0 == x1) {
         int sy = (y0 < y1 ? 1 : -1);
         while(y0 != y1) {
-            XF_DrawPoint(x0, y0, color);
+            draw_point_in_range(x0, y0, color);
             y0 += sy;
         }
 
@@ -448,83 +452,86 @@ void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool outline) {
     }
 }
 
-void draw_point_in_range(int x, int y, uint32_t color) {
-    if(range_check(x, y)) XF_DrawPoint(x, y, color);
-}
+// points are sorted from far left point to far right
+void _draw_sorted_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool fill) {
+    // bresenham algorithm, for one thread
+    int dx_0 = x1 - x0; // v0 -> v1
+    int dx_1 = x2 - x0; // v0 -> v2
 
-void _draw_sorted_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool outline) {
-    int dx01 = x1 - x0;
-    int dx02 = x2 - x0;
+    int dy_0 = -abs(y1 - y0);
+    int dy_1 = -abs(y2 - y0);
 
-    int dy01 = -abs(y1 - y0);
-    int sy01 = (y0 < y1 ? 1 : -1);
-    int dy02 = -abs(y2 - y0);
-    int sy02 = (y0 < y2 ? 1 : -1);
+    int sy_0 = (y0 < y1 ? 1 : -1);
+    int sy_1 = (y0 < y2 ? 1 : -1);
 
-    int err01 = dx01 + dy01;
-    int err02 = dx02 + dy02;
+    int err_0 = dx_0 + dy_0;
+    int err_1 = dx_1 + dy_1;
 
-    int x01 = x0;
-    int x02 = x0;
+    int x = x0;
 
-    int y01 = y0;
-    int y02 = y0;
+    int y_0 = y0;
+    int y_1 = y0;
 
     while(true) {
-        draw_point_in_range(x02, y02, color);
+        draw_point_in_range(x, y_1, color);
 
-        if(x02 == x2 && y02 == y2) break;
+        if(x == x2 && y_1 == y2) break;
 
-        if(x01 == x1 && y01 == y1) {
-            dx01 = x2 - x1;
-            dy01 = -abs(y2 - y1);
-
-            sy01 = (y1 < y2 ? 1 : -1);
-            err01 = dx01 + dy01;
+        int e2_1 = err_1 * 2;
+        if(e2_1 <= dx_1) { // e_xy + e_y < 0
+            err_1 += dx_1;
+            y_1 += sy_1;
         }
+        if(e2_1 >= dy_1) { // e_xy + e_x > 0
+            err_1 += dy_1;
 
-        int e2 = err02 * 2;
-        if(e2 <= dx02) {
-            err02 += dx02;
-            y02 += sy02;
-        }
-        if(e2 >= dy02) {
-            err02 += dy02;
-            ++x02;
+            while(true) {
+                if(x == x2 && y_0 == y2) break;
 
-            while(x02 != x01) {
-                int ee2 = err01 * 2;
-                if(ee2 >= dy01) {
-                    err01 += dy01;
-                    ++x01;
+                int e2_0 = err_0 * 2;
+                if(e2_0 <= dx_0) {
+                    err_0 += dx_0;
+                    y_0 += sy_0;
                 }
-                if(ee2 <= dx01) {
-                    err01 += dx01;
-                    y01 += sy01;
+                if(e2_0 >= dy_0) {
+                    err_0 += dy_0;
+
+                    ++x;
+                    if(x == x1 && y_0 == y1) { // change to v1 -> v2
+                        dx_0 = x2 - x1;
+                        dy_0 = -abs(y2 - y1);
+
+                        sy_0 = (y1 < y2 ? 1 : -1);
+
+                        err_0 = dx_0 + dy_0;
+                    } else {
+                        draw_point_in_range(x, y_0, color);
+                        break;
+                    }
                 }
 
-                draw_point_in_range(x01, y01, color);
+                draw_point_in_range(x, y_0, color);
             }
 
-            XF_DrawLine(x01, y01, x02, y02, color);
+            if(fill) XF_DrawLine(x, y_0, x, y_1, color);
         }
     }
 }
 
-void XF_DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool outline) {
+void XF_DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool fill) {
     // determinate far left point
     if(x0 > x1 || x0 > x2) {
         if(x1 < x2) {
-            if(x0 < x2) _draw_sorted_triangle(x1, y1, x0, y0, x2, y2, color, outline);
-            else _draw_sorted_triangle(x1, y1, x2, y2, x0, y0, color, outline);
+            if(x0 < x2) _draw_sorted_triangle(x1, y1, x0, y0, x2, y2, color, fill);
+            else _draw_sorted_triangle(x1, y1, x2, y2, x0, y0, color, fill);
         }
         else {
-            if(x0 < x1) _draw_sorted_triangle(x2, y2, x0, y0, x1, y2, color, outline);
-            else _draw_sorted_triangle(x2, y2, x1, y1, x0, y1, color, outline);
+            if(x0 < x1) _draw_sorted_triangle(x2, y2, x0, y0, x1, y2, color, fill);
+            else _draw_sorted_triangle(x2, y2, x1, y1, x0, y1, color, fill);
         }
     } else {
-        if(x1 < x2) _draw_sorted_triangle(x0, y0, x1, y1, x2, y2, color, outline);
-        else _draw_sorted_triangle(x0, y0, x2, y2, x1, y1, color, outline);
+        if(x1 < x2) _draw_sorted_triangle(x0, y0, x1, y1, x2, y2, color, fill);
+        else _draw_sorted_triangle(x0, y0, x2, y2, x1, y1, color, fill);
     }
 }
 
