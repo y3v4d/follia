@@ -11,6 +11,6 @@ $(MAKE_DIR)/src/%.o: %.c
 	@mkdir -p $(dir $@)
 	@$(CC) -c -o $@ $< $(INC) $(CFLAGS)
 
-compile: $(MAKE_DIR)/src/primitives.o $(MAKE_DIR)/src/slider.o $(MAKE_DIR)/src/checkbox.o $(MAKE_DIR)/src/selector.o
+compile: $(MAKE_DIR)/src/primitives.o
 	@echo "Building primitives example..."
 	@$(CC) -o $(MAKE_DIR)/primitives $^ -Wl,-rpath=$(LIB_DIR) -L $(LIB_DIR) -lx11framework

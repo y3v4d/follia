@@ -588,6 +588,15 @@ double XF_GetDeltaTime() {
     return dt_messure.delta;
 }
 
+void XF_DrawNoise() {
+    uint32_t *s = (uint32_t*)x_buffer->data;
+    int range = WINDOW_WIDTH * WINDOW_HEIGHT;
+
+    while(range--) {
+        *s++ = (rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255);
+    }
+}
+
 void XF_Render() {
     if(X_USE_SHM) {
         XShmPutImage(x_display, x_window, x_gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);

@@ -63,6 +63,7 @@ void XF_DrawLine(int x0, int y0, int x1, int y1, uint32_t color);
 void XF_DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool fill);
 void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool outline); // to upgrade
 void XF_DrawCircle(int x, int y, int r, uint32_t color, XF_Bool fill);
+void XF_DrawNoise();
 void XF_Render();
 
 #endif

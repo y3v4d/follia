@@ -1,30 +1,19 @@
 #include "x11framework.h"
-#include "slider.h"
-#include "checkbox.h"
-#include "selector.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
-#define MAIN_SPEED 0.9
-
-#define GRAVITY_SPEED 0.003
-#define GRAVITY_CAP 100
-
-struct Primitive {
+struct Rect {
     float x, y;
-    float w, h;
+    int w, h;
+
     float vx, vy;
 
     uint32_t color;
-
-    enum PrimitiveType type;
 };
 
-float absf(float n) {
-    return (n >= 0 ? n : -n);
-}
-
 int main() {
+    srand(time(NULL));
     if(!XF_Initialize(640, 480))
         return -1;
 
@@ -39,82 +28,115 @@ int main() {
         return -1;
     }
 
-    char fps_text[64];
-
-    struct Primitive main = { 10, 10, 64, 64, 0, 0, 0xffff0000, PRIMITIVE_RECT };
-    struct Slider test_slider = { 100, 100, 100, 0.5f, false };
-
-    struct CheckBox test_checkbox = { 200, 200, 24, 24, false };
-
-    struct PrimitiveSelector test_selector = { 300, 300, 50, 30 };
-    initialize_selector(&test_selector);
-
-    XF_Texture* instruction_texture = XF_LoadBMP("data/instruction.bmp");
-    if(!instruction_texture) {
+    XF_FontBDF *bitocra_39 = XF_LoadFontBDF("data/fonts/bitocra-39.bdf");
+    if(!bitocra_39) {
+        XF_WriteLog(XF_LOG_ERROR, "Couldn't load bitocra-39 font!\n");
         XF_FreeFontBDF(knxt);
-        XF_Close();
 
+        XF_Close();
         return -1;
     }
+
+    XF_Texture *texture = XF_LoadBMP("data/test_2.bmp");
+    if(!texture) {
+        XF_WriteLog(XF_LOG_ERROR, "Couldn't load test.bmp!\n");
+
+        XF_FreeFontBDF(knxt);
+        XF_FreeFontBDF(bitocra_39);
+
+        XF_Close();
+        return -1;
+    }
+
+    const int TOTAL_RECTS = 500;
+    struct Rect rects[TOTAL_RECTS];
+
+    for(int i = 0; i < TOTAL_RECTS; ++i) {
+        rects[i].w = rects[i].h = (rand() % 56) + 8;
+        rects[i].x = rand() % (XF_GetWindowWidth() - rects[i].w);
+        rects[i].y = rand() % (XF_GetWindowHeight() - rects[i].h);
+
+        rects[i].vx = (float)(rand() % 4 + 6) / 10;
+        rects[i].vy = (float)(rand() % 4 + 6) / 10;
+
+        rects[i].color = ((rand() % 255) << 16 | (rand() % 255) << 8 | (rand() % 255));
+    }
+
+    int current_test = 0;
+
+    const int fps_text_s = 64;
+    char fps_text[fps_text_s];
+
+    const int meassure_text_s = 64;
+    char meassure_text[meassure_text_s];
+    XF_Timer meassure_timer;
 
     XF_Event event;
     while(!XF_WindowShouldClose()) {
         while(XF_GetEvent(&event)) {
             if(event.type == XF_EVENT_KEY_PRESSED) {
                 switch(event.key.code) {
-                    case 'w': main.vy = -MAIN_SPEED; break;
-                    case 's': main.vy = MAIN_SPEED; break;
-                    case 'a': main.vx = -MAIN_SPEED; break;
-                    case 'd': main.vx = MAIN_SPEED; break;
+                    case '1': current_test = 0; break;
+                    case '2': current_test = 1; break;
+                    case '3': current_test = 2; break;
                     default: break;
                 }
             } else if(event.type == XF_EVENT_KEY_RELEASED) {
                 switch(event.key.code) {
-                    case 'w': case 's': main.vy = 0; break;
-                    case 'a': case 'd': main.vx = 0; break;
                     default: break;
                 }
-            } else if((event.type & XF_EVENT_MOUSE_PREFIX) == XF_EVENT_MOUSE_PREFIX) {
-                process_slider(&test_slider, &event.mouse);
-                process_checkbox(&test_checkbox, &event.mouse);
-                process_selector(&test_selector, &event.mouse);
             }
         }
 
-        main.x = (640 - main.w) * test_slider.progress;
+        if(current_test == 1 || current_test == 2) {
+            for(int i = 0; i < TOTAL_RECTS; ++i) {
+                rects[i].x += rects[i].vx * XF_GetDeltaTime();
+                rects[i].y += rects[i].vy * XF_GetDeltaTime();
 
-        main.x += main.vx * XF_GetDeltaTime();
-        main.y += main.vy * XF_GetDeltaTime();
+                if(rects[i].x < 0) {
+                    rects[i].x = 0;
+                    rects[i].vx *= -1;
+                } else if(rects[i].x + rects[i].w >= XF_GetWindowWidth()) {
+                    rects[i].x = XF_GetWindowWidth() - rects[i].w - 1;
+                    rects[i].vx *= -1;
+                } 
 
-        if(test_checkbox.checked) main.color = 0xff0000ff;
-        else main.color = 0xffff0000;
-
-        if(test_selector.recent_change) main.type = test_selector.current_option;
+                if(rects[i].y < 0) {
+                    rects[i].y = 0;
+                    rects[i].vy *= -1;
+                } else if(rects[i].y + rects[i].h >= XF_GetWindowHeight()) {
+                    rects[i].y = XF_GetWindowHeight() - rects[i].h - 1;
+                    rects[i].vy *= -1;
+                }
+            }
+        }
 
         XF_StopTimer(&delta_timer);
         if(delta_timer.delta >= 800) {
-            snprintf(fps_text, 64, "MS: %f\nFPS: %f", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime());
+            snprintf(fps_text, fps_text_s, "MS: %.2f\nFPS: %.2f", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime());
             XF_StartTimer(&delta_timer);
         }
 
         XF_ClearScreen();
+        if(current_test == 0) {
+            XF_StartTimer(&meassure_timer);
+            XF_DrawNoise();
+            XF_StopTimer(&meassure_timer);
+            snprintf(meassure_text, meassure_text_s, "MS: %f", meassure_timer.delta);
+        } else if(current_test == 1) {
+            for(int i = 0; i < TOTAL_RECTS; ++i)
+                XF_DrawRect(rects[i].x, rects[i].y, rects[i].w, rects[i].h, rects[i].color, false);
+        } else if(current_test == 2) {
+            for(int i = 0; i < TOTAL_RECTS; ++i)
+                XF_DrawTextureScaled(texture, rects[i].x, rects[i].y, rects[i].w, rects[i].h);
+        }
 
-        if(main.type == PRIMITIVE_RECT) XF_DrawRect(main.x, main.y, main.w, main.h, main.color, false); 
-        else if(main.type == PRIMITIVE_LINE) XF_DrawLine(main.x, main.y, main.x + main.w, main.y + main.h, main.color);
-        XF_DrawCircle(main.x, main.y + 100, 25, main.color, true);
-        XF_DrawLine(0, 0, 200, 0, 0xffff0000);
-
-        draw_slider(&test_slider);
-        draw_checkbox(&test_checkbox);
-        draw_selector(&test_selector);
-
-        XF_DrawText(10, 10, fps_text, 64, XF_GetWindowWidth(), knxt);
-        XF_DrawTexture(instruction_texture, XF_GetWindowWidth() - instruction_texture->width, XF_GetWindowHeight() - instruction_texture->height);
-        XF_DrawTriangle(200, 300, 400, 300, 400, 200, 0xffff0000, true);
+        XF_DrawText(10, 10, fps_text, fps_text_s, XF_GetWindowWidth(), bitocra_39);
         XF_Render();
     }
 
-    XF_FreeTexture(instruction_texture);
+    XF_FreeTexture(texture);
+    XF_FreeFontBDF(bitocra_39);
     XF_FreeFontBDF(knxt);
 
     XF_Close();
