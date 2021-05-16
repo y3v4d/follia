@@ -1,6 +1,7 @@
 #include "video/xf_texture.h"
 #include "core/xf_log.h"
 #include "core/xf_system.h"
+#include "../core/frame_buffer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,40 +111,47 @@ void XF_FreeTexture(XF_Texture *o) {
 }
 
 void XF_DrawTexture(const XF_Texture *s, int x, int y) {
-    int ac_w = s->width, ac_h = s->height;
-    uint32_t *start_line = s->data;
+    uint32_t *tex = s->data;
+    int w = s->width, h = s->height;
+    int w_diff = 0;
 
     if(x < 0) {
-        start_line += -x;
+        tex += -x;
 
-        ac_w += x;
+        w_diff = -x;
+
+        w += x;
         x = 0;
     }
     if(y < 0) {
-        start_line += -y * s->height;
+        tex += -y * w;
 
-        ac_h += y;
+        h += y;
         y = 0;
     }
 
-    if(ac_w + x > XF_GetWindowWidth()) {
-        ac_w -= (ac_w + x) - XF_GetWindowWidth();
+    if(w + x > XF_GetWindowWidth()) {
+        int diff = (w + x) - XF_GetWindowWidth();
+
+        w_diff += diff;
+        w -= diff;
     }
-    if(ac_h + y > XF_GetWindowHeight()) {
-        ac_h -= (ac_h + y) - XF_GetWindowHeight();
+    if(h + y > XF_GetWindowHeight()) {
+        h -= (h + y) - XF_GetWindowHeight();
     }
         
-    uint32_t *coord = start_line;
+    uint32_t *frame = h_lines[y] + x;
 
-    for(int ay = 0; ay < ac_h; ++ay) {
-        for(int ax = 0; ax < ac_w; ++ax) {
-            if(*coord != 0xff00ff) XF_DrawPoint(x + ax, y + ay, *coord);
+    int hz_count = 0;
+    while(h--) {
+        hz_count = w;
 
-            coord++;
+        while(hz_count--) {
+            *frame++ = *tex++;
         }
-
-        start_line += s->width;
-        coord = start_line;
+        
+        frame += XF_GetWindowWidth() - w;
+        tex += w_diff;
     }
 }
 
