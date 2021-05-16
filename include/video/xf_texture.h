@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 typedef struct _XF_Texture {
-    uint32_t width;
-    uint32_t height;
+    int width;
+    int height;
 
     uint32_t *data; // stored in 0xAARRGGBB format
 } XF_Texture;

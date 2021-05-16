@@ -1,6 +1,7 @@
 #include "video/xf_texture.h"
 #include "core/xf_log.h"
 #include "core/xf_system.h"
+#include "../core/frame_buffer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,45 +111,124 @@ void XF_FreeTexture(XF_Texture *o) {
 }
 
 void XF_DrawTexture(const XF_Texture *s, int x, int y) {
-    int ac_w = s->width, ac_h = s->height;
+    if(x + s->width < 0 || x >= XF_GetWindowWidth() || y + s->height < 0 || y >= XF_GetWindowHeight()) return;
+
     uint32_t *start_line = s->data;
+    int w = s->width, h = s->height;
 
     if(x < 0) {
         start_line += -x;
 
-        ac_w += x;
+        w += x;
         x = 0;
     }
     if(y < 0) {
-        start_line += -y * s->height;
+        start_line += -y * s->width;
 
-        ac_h += y;
+        h += y;
         y = 0;
     }
 
-    if(ac_w + x > XF_GetWindowWidth()) {
-        ac_w -= (ac_w + x) - XF_GetWindowWidth();
+    if(w + x > XF_GetWindowWidth()) {
+        w -= (w + x) - XF_GetWindowWidth();
     }
-    if(ac_h + y > XF_GetWindowHeight()) {
-        ac_h -= (ac_h + y) - XF_GetWindowHeight();
+    if(h + y > XF_GetWindowHeight()) {
+        h -= (h + y) - XF_GetWindowHeight();
     }
         
-    uint32_t *coord = start_line;
+    uint32_t *frame = h_lines[y] + x;
+    uint32_t *tex = NULL;
 
-    for(int ay = 0; ay < ac_h; ++ay) {
-        for(int ax = 0; ax < ac_w; ++ax) {
-            if(*coord != 0xff00ff) XF_DrawPoint(x + ax, y + ay, *coord);
+    int hz_count = 0;
+    while(h--) {
+        tex = start_line;
+        hz_count = w;
 
-            coord++;
+        while(hz_count--) {
+            uint32_t pixel = *tex++;
+
+            if(pixel != 0xff00ff) *frame++ = pixel;
+            else frame++;
+        }
+        
+        frame += XF_GetWindowWidth() - w;
+        start_line += s->width;
+    }
+}
+
+void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
+    if(w <= 0 || h <= 0) return;
+    if(x + w < 0 || x >= XF_GetWindowWidth() || y + h < 0 || y >= XF_GetWindowHeight()) return;
+
+    int ren_w = w, ren_h = h;
+
+    uint32_t *start_line = s->data;
+
+    int w_counter = 0;
+    int h_counter = 0;
+
+    if(x < 0) {
+        w_counter = -x * s->width;
+
+        ren_w += x;
+        x = 0;
+
+        while(w_counter >= w) {
+            start_line++;
+            w_counter -= w;
+        }
+    }
+    if(y < 0) {
+        h_counter += -y * s->height;
+
+        ren_h += y;
+        y = 0; 
+
+        while(h_counter >= h) {
+            start_line += s->width;
+            h_counter -= h;
+        }
+    }
+    if(ren_w + x > XF_GetWindowWidth()) {
+        ren_w -= (ren_w + x) - XF_GetWindowWidth();
+    }
+    if(ren_h + y > XF_GetWindowHeight()) {
+        ren_h -= (ren_h + y) - XF_GetWindowHeight();
+    }
+
+    uint32_t *frame = h_lines[y] + x;
+    uint32_t *tex = NULL;;
+
+    int hz_count = 0;
+    int v_count = ren_h;
+    while(v_count--) {
+        tex = start_line;
+        hz_count = ren_w;
+
+        while(hz_count--) {
+            uint32_t color = *tex;
+            if(color != 0xff00ff) *frame++ = color;
+            else frame++;
+
+            w_counter += s->width;
+            while(w_counter >= w) {
+                tex++;
+                w_counter -= w;
+            }
         }
 
-        start_line += s->width;
-        coord = start_line;
+        frame += XF_GetWindowWidth() - ren_w;
+
+        h_counter += s->height;
+        while(h_counter >= h) {
+            start_line += s->width;
+            h_counter -= h;
+        }
     }
 }
 
 /* TO OPTIMIZE! */
-void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
+/*void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
     if(w < 0 || h < 0) return;
 
     int ac_w = w, ac_h = h;
@@ -212,4 +292,4 @@ void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
 
         w_counter = w_offset - (int) w_offset;
     }
-}
+}*/

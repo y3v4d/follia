@@ -1,6 +1,7 @@
 #include "core/xf_system.h"
 #include "core/xf_log.h"
 #include "core/xf_timer.h"
+#include "frame_buffer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
