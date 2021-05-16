@@ -48,7 +48,7 @@ int main() {
         return -1;
     }
 
-    const int TOTAL_RECTS = 500;
+    const int TOTAL_RECTS = 800;
     struct Rect rects[TOTAL_RECTS];
 
     for(int i = 0; i < TOTAL_RECTS; ++i) {
@@ -61,6 +61,13 @@ int main() {
 
         rects[i].color = ((rand() % 255) << 16 | (rand() % 255) << 8 | (rand() % 255));
     }
+
+    struct Rect mover = { 100, 100, 32, 32, 0, 0, 0 };
+
+    struct Rect scary = { 0, 0, XF_GetWindowWidth(), XF_GetWindowHeight(), 0, 0, 0 };
+    struct Rect player = { 0, 0, 32, 64, 0, 0, 0x0000ff };
+    player.y = XF_GetWindowHeight() - player.h;
+    XF_Bool player_on_ground = true;
 
     int current_test = 0;
 
@@ -79,11 +86,47 @@ int main() {
                     case '1': current_test = 0; break;
                     case '2': current_test = 1; break;
                     case '3': current_test = 2; break;
+                    case '4': current_test = 3; break;
+                    case '5': current_test = 4; break;
                     default: break;
                 }
+
+                if(current_test == 3) {
+                    const float SPEED = 0.1;
+                    switch(event.key.code) {
+                        case 'w': mover.vy = -SPEED; break;
+                        case 's': mover.vy = SPEED; break;
+                        case 'a': mover.vx = -SPEED; break;
+                        case 'd': mover.vx = SPEED; break;
+                        default: break;
+                    }
+                } else if(current_test == 4) {
+                    const float SPEED = 0.5;
+                    const float JUMP_FORCE = 1.f;
+                    switch(event.key.code) {
+                        case 'a': player.vx = -SPEED; break;
+                        case 'd': player.vx = SPEED; break;
+                        case ' ': 
+                            if(player_on_ground) {
+                                player.vy = -JUMP_FORCE;
+                                player_on_ground = false;
+                            }
+                            break;
+                        default: break;
+                    }
+                }
             } else if(event.type == XF_EVENT_KEY_RELEASED) {
-                switch(event.key.code) {
-                    default: break;
+                if(current_test == 3) {
+                    switch(event.key.code) {
+                        case 'w': case 's': mover.vy = 0; break;
+                        case 'a': case 'd': mover.vx = 0; break;
+                        default: break;
+                    }
+                } else if(current_test == 4) {
+                    switch(event.key.code) {
+                        case 'a': case 'd': player.vx = 0; break;
+                        default: break;
+                    }
                 }
             }
         }
@@ -109,6 +152,27 @@ int main() {
                     rects[i].vy *= -1;
                 }
             }
+        } else if(current_test == 3) {
+            mover.x += mover.vx;
+            mover.y += mover.vy;
+        } else if(current_test == 4) {
+            player.x += player.vx * XF_GetDeltaTime();
+            player.y += player.vy * XF_GetDeltaTime();
+
+            if(player.x < 0) {
+                player.x = 0;
+                player.vx = 0;
+            } else if(player.x + player.w > XF_GetWindowWidth()) {
+                player.x = XF_GetWindowWidth() - player.w;
+                player.vx = 0;
+            }
+            if(!player_on_ground) {
+                if(player.y + player.h >= XF_GetWindowHeight()) {
+                    player.y = XF_GetWindowHeight() - player.h;
+                    player.vy = 0;
+                    player_on_ground = true;
+                } else player.vy += 0.01f * XF_GetDeltaTime();
+            }
         }
 
         XF_StopTimer(&delta_timer);
@@ -128,7 +192,12 @@ int main() {
                 XF_DrawRect(rects[i].x, rects[i].y, rects[i].w, rects[i].h, rects[i].color, false);
         } else if(current_test == 2) {
             for(int i = 0; i < TOTAL_RECTS; ++i)
-                XF_DrawTexture(texture, rects[i].x, rects[i].y);
+                XF_DrawTextureScaled(texture, rects[i].x, rects[i].y, rects[i].w, rects[i].h);
+        } else if(current_test == 3) {
+            XF_DrawTextureScaled(texture, mover.x, mover.y, mover.w, mover.h);
+        } else if(current_test == 4) {
+            XF_DrawTextureScaled(texture, scary.x, scary.y, scary.w, scary.h);
+            XF_DrawRect(player.x, player.y, player.w, player.h, player.color, false);
         }
 
         XF_DrawText(10, 10, fps_text, fps_text_s, XF_GetWindowWidth(), bitocra_39);
