@@ -128,7 +128,7 @@ int main() {
                 XF_DrawRect(rects[i].x, rects[i].y, rects[i].w, rects[i].h, rects[i].color, false);
         } else if(current_test == 2) {
             for(int i = 0; i < TOTAL_RECTS; ++i)
-                XF_DrawTextureScaled(texture, rects[i].x, rects[i].y, rects[i].w, rects[i].h);
+                XF_DrawTexture(texture, rects[i].x, rects[i].y);
         }
 
         XF_DrawText(10, 10, fps_text, fps_text_s, XF_GetWindowWidth(), bitocra_39);
