@@ -62,7 +62,7 @@ int main() {
             }
         }
 
-        if((double)(clock() - prev_c) / CLOCKS_PER_SEC >= 0.15) {
+        if((double)(clock() - prev_c) / CLOCKS_PER_SEC >= 0.09) {
             // pass the position from the top to the bottom
             for(unsigned i = length - 1; i > 0; --i) {
                 parts[i]->x = parts[i - 1]->x;
@@ -91,7 +91,20 @@ int main() {
                     parts[length] = create_vector(parts[length - 1]->x, parts[length - 1]->y);
                     length++;
 
-                    apple.x = rand() % FIELD_W; apple.y = rand() % FIELD_H;
+                    if(length < MAX_PARTS) {
+                        XF_Bool passed;
+                        do {
+                            apple.x = rand() % FIELD_W; apple.y = rand() % FIELD_H;
+
+                            passed = true;
+                            for(int i = 0; i < length; ++i) {
+                                if(parts[i]->x == apple.x && parts[i]->y == apple.y) {
+                                    passed = false;
+                                    break;
+                                }
+                            }
+                        } while(!passed);
+                    }
                 }
             }
 

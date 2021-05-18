@@ -315,7 +315,7 @@ void XF_ClearScreen() {
     memset(x_buffer->data, clear_color, WINDOW_WIDTH * WINDOW_HEIGHT * 4);
 }
 
-XF_Bool range_check(int x, int y) {
+static inline XF_Bool range_check(int x, int y) {
     return (x >= 0 && x < WINDOW_WIDTH && y >= 0 && y < WINDOW_HEIGHT);
 }
 
@@ -323,8 +323,8 @@ void XF_DrawPoint(int x, int y, uint32_t color) {
     *(h_lines[y] + x) = color;
 }
 
-void draw_point_in_range(int x, int y, uint32_t color) {
-    if(range_check(x, y)) XF_DrawPoint(x, y, color);
+static inline void draw_point_in_range(int x, int y, uint32_t color) {
+    if(range_check(x, y)) *(h_lines[y] + x) = color;
 }
 
 // only for x0 < x1 !!!

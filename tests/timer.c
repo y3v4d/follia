@@ -6,8 +6,8 @@ int main() {
     if(!XF_Initialize(640, 480))
         return -1;
 
-    XF_Timer delta_timer;
-    XF_StartTimer(&delta_timer);
+    XF_Timer timer;
+    XF_StartTimer(&timer);
 
     XF_FontBDF* bitocra_39 = XF_LoadFontBDF("data/fonts/bitocra-39.bdf");
     if(!bitocra_39) {
@@ -23,10 +23,10 @@ int main() {
     while(!XF_WindowShouldClose()) {
         while(XF_GetEvent(&event)) {}
 
-        XF_StopTimer(&delta_timer);
-        if(delta_timer.delta >= 800) {
-            snprintf(fps_text, 64, "MS: %f\nFPS: %f\nSec: %ld\nN: %ld", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime(), delta_timer.end.tv_nsec - delta_timer.start.tv_nsec, delta_timer.end.tv_sec - delta_timer.start.tv_sec);
-            XF_StartTimer(&delta_timer);
+        XF_StopTimer(&timer);
+        if(timer.delta >= 500) {
+            snprintf(fps_text, 64, "MS: %.4f\nFPS: %.4f", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime());
+            XF_StartTimer(&timer);
         }
 
         XF_ClearScreen();

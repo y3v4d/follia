@@ -11,7 +11,7 @@ OBJ := $(SRC:src/%.c=build/src/%.o)
 
 export PROJECT_DIRECTORY
 
-.PHONY: compile clean examples/snake examples/scalable examples/mouse examples/text examples/space-invaders examples/primitives
+.PHONY: compile clean examples/snake examples/scalable examples/text examples/space-invaders examples/primitives tests/timer tests/mouse
 
 build/src/%.o: src/%.c $(DEPS)
 	@echo "Compiling shared library $<..."
@@ -23,9 +23,9 @@ compile: $(OBJ)
 	@mkdir -p build/lib
 	@$(CC) -shared -o build/lib/libx11framework.so $^ $(LIBS)
 	@echo "Start making examples..."
+	@mkdir -p build/logs
 	@make -C examples/snake -f Makefile compile
 	@make -C examples/scalable -f Makefile compile
-	@make -C examples/mouse -f Makefile compile
 	@make -C examples/text -f Makefile compile
 	@make -C examples/space-invaders -f Makefile compile
 	@make -C examples/primitives -f Makefile compile
@@ -43,10 +43,6 @@ examples/scalable:
 	@echo "Running scalable example..."
 	@./build/examples/scalable/scalable
 
-examples/mouse:
-	@echo "Running mouse example..."
-	@./build/examples/mouse/mouse
-
 examples/text:
 	@echo "Running text example..."
 	@./build/examples/text/text
@@ -59,6 +55,10 @@ examples/primitives:
 	@echo "Running primitves example..."
 	@./build/examples/primitives/primitives
 
-tests/fps_test:
-	@echo "Running fps_test test..."
-	@./build/tests/fps_test
+tests/timer:
+	@echo "Running timer test..."
+	@./build/tests/timer
+
+tests/mouse:
+	@echo "Running mouse test..."
+	@./build/tests/mouse

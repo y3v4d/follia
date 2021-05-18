@@ -130,10 +130,10 @@ void XF_DrawTexture(const XF_Texture *s, int x, int y) {
     }
 
     if(w + x > XF_GetWindowWidth()) {
-        w -= (w + x) - XF_GetWindowWidth();
+        w = XF_GetWindowWidth() - x;
     }
     if(h + y > XF_GetWindowHeight()) {
-        h -= (h + y) - XF_GetWindowHeight();
+        h = XF_GetWindowHeight() - y;
     }
         
     uint32_t *frame = h_lines[y] + x;
@@ -190,10 +190,10 @@ void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
         }
     }
     if(ren_w + x > XF_GetWindowWidth()) {
-        ren_w -= (ren_w + x) - XF_GetWindowWidth();
+        ren_w = XF_GetWindowWidth() - x;
     }
     if(ren_h + y > XF_GetWindowHeight()) {
-        ren_h -= (ren_h + y) - XF_GetWindowHeight();
+        ren_h = XF_GetWindowHeight() - y;
     }
 
     uint32_t *frame = h_lines[y] + x;
@@ -226,70 +226,3 @@ void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
         }
     }
 }
-
-/* TO OPTIMIZE! */
-/*void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
-    if(w < 0 || h < 0) return;
-
-    int ac_w = w, ac_h = h;
-    uint32_t *line_start = s->data;
-    
-    float w_ratio = (float)s->width / w;
-    float h_ratio = (float)s->height / h;
-    
-    float w_counter = 0;
-    float h_counter = 0;
-
-    float w_offset = 0;
-    float h_offset = 0;
-    
-    if(x < 0) {
-        w_offset = -x * w_ratio;
-        line_start += (uint32_t)w_offset;
-
-        w_counter = w_offset - (int) w_offset;
-
-        ac_w += x;
-        x = 0;
-    }
-    if(y < 0) {
-        h_offset = -y * h_ratio;
-        line_start += (uint32_t)((int)h_offset * s->height);
-
-        h_counter = h_offset - (int) h_offset;
-
-        ac_h += y;
-        y = 0;
-    }
-
-    if(ac_w + x > XF_GetWindowWidth()) {
-        ac_w -= (ac_w + x) - XF_GetWindowWidth();
-    }
-    if(ac_h + y > XF_GetWindowHeight()) {
-        ac_h -= (ac_h + y) - XF_GetWindowHeight();
-    }
-    
-    uint32_t *coord = line_start;
-
-    for(int ay = 0; ay < ac_h; ++ay) {
-        for(int ax = 0; ax < ac_w; ++ax) {
-            if(*coord != 0xff00ff) XF_DrawPoint(x + ax, y + ay, *coord);
-
-            w_counter += w_ratio;
-            if(w_counter >= 1) {
-                coord += (int)w_counter;
-                w_counter -= (int)w_counter;
-            }
-        }
-
-        h_counter += h_ratio;
-        if(h_counter >= 1) {
-            line_start += s->width * ((int)h_counter);
-            h_counter -= (int)h_counter;
-        }
-        
-        coord = line_start;
-
-        w_counter = w_offset - (int) w_offset;
-    }
-}*/
