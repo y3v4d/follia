@@ -10,5 +10,5 @@ $(MAKE_DIR)/%: %.c
 	@mkdir -p $(dir $@)
 	@$(CC) -o $@ $< $(INC) $(CFLAGS) -Wl,-rpath=$(LIB_DIR) -L $(LIB_DIR) -lx11framework
 
-compile: $(MAKE_DIR)/timer $(MAKE_DIR)/mouse
+compile: $(MAKE_DIR)/timer $(MAKE_DIR)/mouse $(MAKE_DIR)/text
 	@echo "Start to compile and build tests..."

@@ -4,9 +4,7 @@
 #include <stdint.h>
 
 extern uint32_t **h_lines;
-
-inline void fast_pixel_plot(int x, int y, uint32_t color) {
-    *(h_lines[y] + x) = color;
-}
+extern int WINDOW_WIDTH;
+extern int WINDOW_HEIGHT;
 
 #endif

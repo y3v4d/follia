@@ -11,7 +11,7 @@ OBJ := $(SRC:src/%.c=build/src/%.o)
 
 export PROJECT_DIRECTORY
 
-.PHONY: compile clean examples/snake examples/scalable examples/text examples/space-invaders examples/primitives tests/timer tests/mouse
+.PHONY: compile clean examples/snake examples/space-invaders examples/primitives tests/timer tests/mouse tests/text
 
 build/src/%.o: src/%.c $(DEPS)
 	@echo "Compiling shared library $<..."
@@ -25,8 +25,6 @@ compile: $(OBJ)
 	@echo "Start making examples..."
 	@mkdir -p build/logs
 	@make -C examples/snake -f Makefile compile
-	@make -C examples/scalable -f Makefile compile
-	@make -C examples/text -f Makefile compile
 	@make -C examples/space-invaders -f Makefile compile
 	@make -C examples/primitives -f Makefile compile
 	@make -C tests -f Makefile compile
@@ -38,14 +36,6 @@ clean:
 examples/snake:
 	@echo "Running snake example..."
 	@./build/examples/snake/snake
-
-examples/scalable:
-	@echo "Running scalable example..."
-	@./build/examples/scalable/scalable
-
-examples/text:
-	@echo "Running text example..."
-	@./build/examples/text/text
 
 examples/space-invaders:
 	@echo "Running space-invaders example..."
@@ -62,3 +52,7 @@ tests/timer:
 tests/mouse:
 	@echo "Running mouse test..."
 	@./build/tests/mouse
+
+tests/text:
+	@echo "Running text test..."
+	@./build/tests/text

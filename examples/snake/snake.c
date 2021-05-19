@@ -120,12 +120,12 @@ int main() {
         fps_end = clock();
 
         XF_ClearScreen();
-        XF_DrawRect(apple.x * FIELD_SIZE, apple.y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0xff0000, false);
-        XF_DrawRect(apple.x * FIELD_SIZE, apple.y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, true);
+        XF_DrawRect(apple.x * FIELD_SIZE, apple.y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0xff0000, true);
+        XF_DrawRect(apple.x * FIELD_SIZE, apple.y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, false);
         
         for(unsigned i = 0; i < MAX_PARTS && parts[i]; ++i) {
-            XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0x00ff00, false);
-            XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, true);
+            XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0x00ff00, true);
+            XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, false);
         }
 
         XF_DrawText(10, 10, fps_text, 16, XF_GetWindowWidth(), knxt_font);
