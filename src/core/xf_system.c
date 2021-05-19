@@ -413,6 +413,7 @@ void XF_DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
 }
 
 void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool outline) {
+    // RANGE CHECK
     if(x >= WINDOW_WIDTH || y >= WINDOW_HEIGHT || x + w <= 0 || y + h <= 0) return;
 
     if(x < 0) {
@@ -455,6 +456,10 @@ void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool outline) {
 
 // points are sorted from far left point to far right
 void _draw_sorted_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool fill) {
+    // RANGE CHECK
+    if(x2 < 0 || x0 >= XF_GetWindowWidth() || y0 < 0 || y1 < 0 || y2 < 0 || y0 >= XF_GetWindowHeight() || y1 >= XF_GetWindowHeight() || y2 >= XF_GetWindowHeight())
+        return;
+
     // bresenham algorithm, for one thread
     int dx_0 = x1 - x0; // v0 -> v1
     int dx_1 = x2 - x0; // v0 -> v2
@@ -537,6 +542,9 @@ void XF_DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t co
 }
 
 void XF_DrawCircle(int x, int y, int r, uint32_t color, XF_Bool fill) {
+    // RANGE CHECK
+    if(x + r < 0 || x - r >= XF_GetWindowWidth() || y + r < 0 || y - r >= XF_GetWindowHeight()) return;
+
     // using bresenham circle algorithm (int)
     int x_change = 1 - 2 * r; // 1 - 2 * xn
     int y_change = 1;         // 2 * yn + 1
