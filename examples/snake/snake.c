@@ -1,4 +1,5 @@
 #include "x11framework.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -48,7 +49,6 @@ int main() {
     clock_t prev_c = clock();
 
     XF_Event event;
-
     while(!XF_WindowShouldClose()) {
         while(XF_GetEvent(&event)) {
             if(event.type == XF_EVENT_KEY_PRESSED) {
