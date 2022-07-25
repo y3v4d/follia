@@ -21,8 +21,11 @@ struct Circle {
 
 int main() {
     srand(time(NULL));
+
     if(!XF_Initialize(640, 480))
         return -1;
+
+    XF_SetTitle("Follia - Primitives");
 
     XF_Timer delta_timer;
     XF_StartTimer(&delta_timer);

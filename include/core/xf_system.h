@@ -48,6 +48,8 @@ double XF_GetDeltaTime();
  */
 void XF_SetClearColor(uint8_t base);
 
+void XF_SetTitle(char *name);
+
 /*
  * XF_ClearScreen
  * Clears the screen buffer with gray color (166, 166, 166).

@@ -6,6 +6,8 @@ int main() {
     if(!XF_Initialize(640, 480))
         return -1;
 
+    XF_SetTitle("Follia - Timer");
+
     XF_Timer timer;
     XF_StartTimer(&timer);
 

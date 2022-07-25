@@ -125,13 +125,7 @@ XF_Bool XF_Initialize(int width, int height) {
     } else XF_WriteLog(XF_LOG_WARNING, "Couldn't allocate memory for WM_CLASS value");
 
     // WM_NAME setup
-    char* wm_name_string = "X11Framework";
-    XTextProperty wm_text_property;
-
-    XStringListToTextProperty(&wm_name_string, 1, &wm_text_property);
-    XSetWMName(x_display, x_window, &wm_text_property);
-
-    XFree(wm_text_property.value);
+    XF_SetTitle("X11Framework");
 
     // WM_DELETE setup
     wm_delete_window = XInternAtom(x_display, "WM_DELETE_WINDOW", False);
@@ -232,6 +226,15 @@ int XF_GetWindowWidth() { return WINDOW_WIDTH; }
 int XF_GetWindowHeight() { return WINDOW_HEIGHT; }
 
 XF_Bool XF_WindowShouldClose() { return x_window_close; }
+
+void XF_SetTitle(char *name) {
+    XTextProperty wm_text_property;
+
+    XStringListToTextProperty(&name, 1, &wm_text_property);
+    XSetWMName(x_display, x_window, &wm_text_property);
+
+    XFree(wm_text_property.value);
+}
 
 int recent_button = 0; // stores pressed button for the motion event (for some reason
                        // motion event doesn't know what button is pressed, always contains 0)

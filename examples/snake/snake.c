@@ -26,6 +26,8 @@ int main() {
     if(!XF_Initialize(640, 480))
         exit(-1);
 
+    XF_SetTitle("Follia - Snake");
+
     XF_FontBDF *knxt_font = XF_LoadFontBDF("data/fonts/knxt.bdf");
     if(!knxt_font) {
         XF_Close();

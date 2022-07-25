@@ -55,6 +55,8 @@ int main() {
     if(!XF_Initialize(640, 480))
         return -1;
 
+    XF_SetTitle("Follia - 3D Example");
+
     XF_FontBDF *knxt = XF_LoadFontBDF("data/fonts/knxt.bdf");
     XF_FontBDF *bitocra_39 = XF_LoadFontBDF("data/fonts/bitocra-39.bdf");
 
