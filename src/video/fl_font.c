@@ -1,7 +1,7 @@
-#include "video/xf_font.h"
-#include "core/xf_log.h"
-#include "core/xf_system.h"
-#include "core/xf_primitives.h"
+#include "video/fl_font.h"
+#include "core/fl_log.h"
+#include "core/fl_system.h"
+#include "core/fl_primitives.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +10,7 @@
 
 uint32_t text_color = 0x000000;
 
-struct _XF_CharBDF {
+struct _FL_CharBDF {
     uint32_t id;
   
     // bounding box 
@@ -36,16 +36,16 @@ uint8_t hex_to_int(uint8_t n) {
     return temp;
 }
 
-XF_CharBDF* load_char(FILE *file) {
+FL_CharBDF* load_char(FILE *file) {
     if(!file) {
-        XF_WriteLog(XF_LOG_ERROR, "Wrong file passed!");
+        FL_WriteLog(FL_LOG_ERROR, "Wrong file passed!");
         
         return NULL;
     }
 
-    XF_CharBDF *temp = (XF_CharBDF*)malloc(sizeof(XF_CharBDF));
+    FL_CharBDF *temp = (FL_CharBDF*)malloc(sizeof(FL_CharBDF));
     if(!temp) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for character!");
+        FL_WriteLog(FL_LOG_ERROR, "Couldn't allocate memory for character!");
         
         fclose(file);
         return NULL;
@@ -58,7 +58,7 @@ XF_CharBDF* load_char(FILE *file) {
     } while(strncmp(buffer, "STARTCHAR", 9) != 0 && !feof(file));
 
     if(feof(file)) {
-        XF_WriteLog(XF_LOG_ERROR, "Unexpected end of file!\n");
+        FL_WriteLog(FL_LOG_ERROR, "Unexpected end of file!\n");
 
         free(temp);
 
@@ -96,9 +96,9 @@ XF_CharBDF* load_char(FILE *file) {
     return temp;
 }
 
-void XF_FreeFontBDF(XF_FontBDF *font) {
+void FL_FreeFontBDF(FL_FontBDF *font) {
     if(!font) {
-        XF_WriteLog(XF_LOG_WARNING, "Attempt to double-free memory! Be carefull!\n");
+        FL_WriteLog(FL_LOG_WARNING, "Attempt to double-free memory! Be carefull!\n");
         return;
     }
 
@@ -113,10 +113,10 @@ void XF_FreeFontBDF(XF_FontBDF *font) {
     free(font);
 }
 
-XF_FontBDF* XF_LoadFontBDF(const char *path) {
+FL_FontBDF* FL_LoadFontBDF(const char *path) {
     FILE *file = fopen(path, "rb");
     if(!file) {
-       XF_WriteLog(XF_LOG_ERROR, "Couldn't load %s font!\n", path);
+       FL_WriteLog(FL_LOG_ERROR, "Couldn't load %s font!\n", path);
 
        return NULL;
     }
@@ -125,14 +125,14 @@ XF_FontBDF* XF_LoadFontBDF(const char *path) {
 
     fgets(buffer, 255, file);
     if(strncmp(buffer, "STARTFONT 2.1", 13) != 0) {
-        XF_WriteLog(XF_LOG_ERROR, "Uncorrent %s font metadata! (expected 2.1 version)\n", path);
+        FL_WriteLog(FL_LOG_ERROR, "Uncorrent %s font metadata! (expected 2.1 version)\n", path);
         
         fclose(file);
     }
 
-    XF_FontBDF *temp = (XF_FontBDF*)malloc(sizeof(XF_FontBDF));
+    FL_FontBDF *temp = (FL_FontBDF*)malloc(sizeof(FL_FontBDF));
     if(!temp) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for font!\n");
+        FL_WriteLog(FL_LOG_ERROR, "Couldn't allocate memory for font!\n");
 
         fclose(file);
         return NULL;
@@ -150,7 +150,7 @@ XF_FontBDF* XF_LoadFontBDF(const char *path) {
     } while(strncmp(buffer, "CHARS ", 6) != 0 && !feof(file));
 
     if(feof(file)) {
-        XF_WriteLog(XF_LOG_ERROR, "Unexpected end of the %s font!\n", path);
+        FL_WriteLog(FL_LOG_ERROR, "Unexpected end of the %s font!\n", path);
 
         free(temp);
         fclose(file);
@@ -158,9 +158,9 @@ XF_FontBDF* XF_LoadFontBDF(const char *path) {
 
     sscanf(&buffer[6], "%d", &temp->char_number);
 
-    temp->chars = (XF_CharBDF**)malloc(temp->char_number * sizeof(XF_CharBDF*));
+    temp->chars = (FL_CharBDF**)malloc(temp->char_number * sizeof(FL_CharBDF*));
     if(!temp->chars) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for font!\n");
+        FL_WriteLog(FL_LOG_ERROR, "Couldn't allocate memory for font!\n");
 
         free(temp);
         fclose(file);
@@ -171,7 +171,7 @@ XF_FontBDF* XF_LoadFontBDF(const char *path) {
     for(int i = 0; i < temp->char_number; ++i) {
         temp->chars[i] = load_char(file);
         if(!temp->chars[i]) {
-            XF_FreeFontBDF(temp);
+            FL_FreeFontBDF(temp);
             fclose(file);
 
             return NULL;
@@ -183,8 +183,8 @@ XF_FontBDF* XF_LoadFontBDF(const char *path) {
     return temp;    
 }
 
-void render_char(int* x, int* y, const char character, XF_FontBDF *font, uint32_t color) {
-    XF_CharBDF *picked = NULL;
+void render_char(int* x, int* y, const char character, FL_FontBDF *font, uint32_t color) {
+    FL_CharBDF *picked = NULL;
     
     for(int i = 0; i < font->char_number; ++i) {
         if(font->chars[i]->id == character) {
@@ -194,7 +194,7 @@ void render_char(int* x, int* y, const char character, XF_FontBDF *font, uint32_
     }
 
     if(!picked) {
-       XF_WriteLog(XF_LOG_WARNING, "Cannot render unknown character!\n");
+       FL_WriteLog(FL_LOG_WARNING, "Cannot render unknown character!\n");
        return;
     }
 
@@ -208,7 +208,7 @@ void render_char(int* x, int* y, const char character, XF_FontBDF *font, uint32_
             int bit_shift = 7 - j % 8;
 
             if((picked->data[byte_index] >> bit_shift) & 1) {
-                XF_DrawPoint(*x + picked->bbxoff + ax, *y - picked->bbyoff + ay, color);
+                FL_DrawPoint(*x + picked->bbxoff + ax, *y - picked->bbyoff + ay, color);
             } 
             ax++;
 
@@ -225,12 +225,12 @@ void render_char(int* x, int* y, const char character, XF_FontBDF *font, uint32_
     *y += picked->dwy; 
 }
 
-void XF_SetTextColor(uint32_t color) {
+void FL_SetTextColor(uint32_t color) {
     if(color <= 0xFFFFFF) text_color = color;
-    else XF_WriteLog(XF_LOG_WARNING, "Cannot assign > 0xFFFFFF color to RGB storage!");
+    else FL_WriteLog(FL_LOG_WARNING, "Cannot assign > 0xFFFFFF color to RGB storage!");
 }
 
-void XF_DrawText(int x, int y, const char *text, int size, int max_width, XF_FontBDF *font) {
+void FL_DrawText(int x, int y, const char *text, int size, int max_width, FL_FontBDF *font) {
     int start_x = x;
 
     int next_word = 0;

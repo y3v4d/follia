@@ -8,10 +8,10 @@ struct Slider {
     int width;
 
     float progress;
-    XF_Bool focused;
+    FL_Bool focused;
 };
 
-void process_slider(struct Slider *slider, const XF_MouseEvent *mouse);
+void process_slider(struct Slider *slider, const FL_MouseEvent *mouse);
 void draw_slider(const struct Slider *slider);
 
 #endif

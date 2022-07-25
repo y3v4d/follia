@@ -1,4 +1,4 @@
-#include "core/xf_primitives.h"
+#include "core/fl_primitives.h"
 #include "frame_buffer.h"
 
 #include <stdlib.h>
@@ -7,7 +7,7 @@ static inline void _draw_point_in_range(int x, int y, uint32_t color) {
     if(x >= 0 && x < WINDOW_WIDTH && y >= 0 && y < WINDOW_HEIGHT) *(h_lines[y] + x) = color;
 }
 
-void XF_DrawPoint(int x, int y, uint32_t color) {
+void FL_DrawPoint(int x, int y, uint32_t color) {
     *(h_lines[y] + x) = color;
 }
 
@@ -65,7 +65,7 @@ void _plot_line_high(int x0, int y0, int x1, int y1, uint32_t color) {
     }
 }
 
-void XF_DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
+void FL_DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
     // fast implementation for straight lines
     if(y0 == y1) {
         int sx = (x0 < x1 ? 1 : -1);
@@ -96,7 +96,7 @@ void XF_DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
     }
 }
 
-void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool fill) {
+void FL_DrawRect(int x, int y, int w, int h, uint32_t color, FL_Bool fill) {
     // RANGE CHECK
     if(x >= WINDOW_WIDTH || y >= WINDOW_HEIGHT || x + w <= 0 || y + h <= 0) return;
 
@@ -131,15 +131,15 @@ void XF_DrawRect(int x, int y, int w, int h, uint32_t color, XF_Bool fill) {
             s += WINDOW_WIDTH - w;
         }
     } else {
-        XF_DrawLine(x, y, x + w - 1, y, color);
-        XF_DrawLine(x, y + h - 1, x + w - 1, y + h - 1, color);
-        XF_DrawLine(x, y, x, y + h - 1, color);
-        XF_DrawLine(x + w - 1, y, x + w - 1, y + h - 1, color);
+        FL_DrawLine(x, y, x + w - 1, y, color);
+        FL_DrawLine(x, y + h - 1, x + w - 1, y + h - 1, color);
+        FL_DrawLine(x, y, x, y + h - 1, color);
+        FL_DrawLine(x + w - 1, y, x + w - 1, y + h - 1, color);
     }
 }
 
 // points are sorted from far left point to far right
-void _draw_sorted_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool fill) {
+void _draw_sorted_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, FL_Bool fill) {
     // RANGE CHECK
     if(x2 < 0 || x0 >= WINDOW_WIDTH || y0 < 0 || y1 < 0 || y2 < 0 || y0 >= WINDOW_HEIGHT || y1 >= WINDOW_HEIGHT || y2 >= WINDOW_HEIGHT)
         return;
@@ -203,12 +203,12 @@ void _draw_sorted_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint3
                 _draw_point_in_range(x, y_0, color);
             }
 
-            if(fill) XF_DrawLine(x, y_0, x, y_1, color);
+            if(fill) FL_DrawLine(x, y_0, x, y_1, color);
         }
     }
 }
 
-void XF_DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, XF_Bool fill) {
+void FL_DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, FL_Bool fill) {
     // determinate far left point
     if(x0 > x1 || x0 > x2) {
         if(x1 < x2) {
@@ -225,7 +225,7 @@ void XF_DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t co
     }
 }
 
-void XF_DrawCircle(int x, int y, int r, uint32_t color, XF_Bool fill) {
+void FL_DrawCircle(int x, int y, int r, uint32_t color, FL_Bool fill) {
     // RANGE CHECK
     if(x + r < 0 || x - r >= WINDOW_WIDTH || y + r < 0 || y - r >= WINDOW_HEIGHT) return;
 
@@ -275,7 +275,7 @@ void XF_DrawCircle(int x, int y, int r, uint32_t color, XF_Bool fill) {
     }
 }
 
-void XF_DrawNoise() {
+void FL_DrawNoise() {
     uint32_t *s = h_lines[0];
     int range = WINDOW_WIDTH * WINDOW_HEIGHT;
 

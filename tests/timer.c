@@ -1,43 +1,43 @@
-#include "x11framework.h"
+#include "follia.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 int main() {
-    if(!XF_Initialize(640, 480))
+    if(!FL_Initialize(640, 480))
         return -1;
 
-    XF_SetTitle("Follia - Timer");
+    FL_SetTitle("Follia - Timer");
 
-    XF_Timer timer;
-    XF_StartTimer(&timer);
+    FL_Timer timer;
+    FL_StartTimer(&timer);
 
-    XF_FontBDF* bitocra_39 = XF_LoadFontBDF("data/fonts/bitocra-39.bdf");
+    FL_FontBDF* bitocra_39 = FL_LoadFontBDF("data/fonts/bitocra-39.bdf");
     if(!bitocra_39) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't load bitocra font!\n");
+        FL_WriteLog(FL_LOG_ERROR, "Couldn't load bitocra font!\n");
         
-        XF_Close();
+        FL_Close();
         return -1;
     }
 
     char fps_text[64];
 
-    XF_Event event;
-    while(!XF_WindowShouldClose()) {
-        while(XF_GetEvent(&event)) {}
+    FL_Event event;
+    while(!FL_WindowShouldClose()) {
+        while(FL_GetEvent(&event)) {}
 
-        XF_StopTimer(&timer);
+        FL_StopTimer(&timer);
         if(timer.delta >= 500) {
-            snprintf(fps_text, 64, "MS: %.4f\nFPS: %.4f", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime());
-            XF_StartTimer(&timer);
+            snprintf(fps_text, 64, "MS: %.4f\nFPS: %.4f", FL_GetDeltaTime(), 1000.0 / FL_GetDeltaTime());
+            FL_StartTimer(&timer);
         }
 
-        XF_ClearScreen();
-        XF_DrawText(10, 10, fps_text, 64, XF_GetWindowWidth(), bitocra_39);
-        XF_Render();
+        FL_ClearScreen();
+        FL_DrawText(10, 10, fps_text, 64, FL_GetWindowWidth(), bitocra_39);
+        FL_Render();
     }
 
-    XF_FreeFontBDF(bitocra_39);
+    FL_FreeFontBDF(bitocra_39);
 
-    XF_Close();
+    FL_Close();
     return 0;
 }

@@ -1,4 +1,4 @@
-#include "x11framework.h"
+#include "follia.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,14 +23,14 @@ const unsigned FIELD_W = 20, FIELD_H = 15;
 int main() {
     srand(time(NULL));
 
-    if(!XF_Initialize(640, 480))
+    if(!FL_Initialize(640, 480))
         exit(-1);
 
-    XF_SetTitle("Follia - Snake");
+    FL_SetTitle("Follia - Snake");
 
-    XF_FontBDF *knxt_font = XF_LoadFontBDF("data/fonts/knxt.bdf");
+    FL_FontBDF *knxt_font = FL_LoadFontBDF("data/fonts/knxt.bdf");
     if(!knxt_font) {
-        XF_Close();
+        FL_Close();
         exit(-1);
     }
     
@@ -50,15 +50,15 @@ int main() {
 
     clock_t prev_c = clock();
 
-    XF_Event event;
-    while(!XF_WindowShouldClose()) {
-        while(XF_GetEvent(&event)) {
-            if(event.type == XF_EVENT_KEY_PRESSED) {
+    FL_Event event;
+    while(!FL_WindowShouldClose()) {
+        while(FL_GetEvent(&event)) {
+            if(event.type == FL_EVENT_KEY_PRESSED) {
                 switch(event.key.code) {
-                    case XF_KEY_d: direction = 0; break;
-                    case XF_KEY_a: direction = 1; break;
-                    case XF_KEY_w: direction = 2; break;
-                    case XF_KEY_s: direction = 3; break;
+                    case FL_KEY_d: direction = 0; break;
+                    case FL_KEY_a: direction = 1; break;
+                    case FL_KEY_w: direction = 2; break;
+                    case FL_KEY_s: direction = 3; break;
                     default: break; 
                 }
             }
@@ -94,7 +94,7 @@ int main() {
                     length++;
 
                     if(length < MAX_PARTS) {
-                        XF_Bool passed;
+                        FL_Bool passed;
                         do {
                             apple.x = rand() % FIELD_W; apple.y = rand() % FIELD_H;
 
@@ -115,30 +115,30 @@ int main() {
         }
 
         if(fps_end == fps_start || (double)(fps_end - fps_start) / CLOCKS_PER_SEC >= 0.2) {
-            snprintf(fps_text, 16, "FPS: %.2f", 1000.0 / XF_GetDeltaTime());
+            snprintf(fps_text, 16, "FPS: %.2f", 1000.0 / FL_GetDeltaTime());
 
             fps_start = fps_end;
         }
         fps_end = clock();
 
-        XF_ClearScreen();
-        XF_DrawRect(apple.x * FIELD_SIZE, apple.y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0xff0000, true);
-        XF_DrawRect(apple.x * FIELD_SIZE, apple.y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, false);
+        FL_ClearScreen();
+        FL_DrawRect(apple.x * FIELD_SIZE, apple.y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0xff0000, true);
+        FL_DrawRect(apple.x * FIELD_SIZE, apple.y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, false);
         
         for(unsigned i = 0; i < MAX_PARTS && parts[i]; ++i) {
-            XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0x00ff00, true);
-            XF_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, false);
+            FL_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0x00ff00, true);
+            FL_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, false);
         }
 
-        XF_DrawText(10, 10, fps_text, 16, XF_GetWindowWidth(), knxt_font);
-        XF_Render();
+        FL_DrawText(10, 10, fps_text, 16, FL_GetWindowWidth(), knxt_font);
+        FL_Render();
     }
 
     // free memory allocated for snake parts
     for(unsigned i = 0; i < MAX_PARTS && parts[i]; ++i)
         free(parts[i]);
 
-    XF_FreeFontBDF(knxt_font);
+    FL_FreeFontBDF(knxt_font);
  
-    XF_Close();
+    FL_Close();
 }

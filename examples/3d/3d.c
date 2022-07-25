@@ -1,4 +1,4 @@
-#include "x11framework.h"
+#include "follia.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -40,8 +40,8 @@ vec3f homogoneus_to_cartesian(const vec4f *p) {
 }
 
 vec2f camera_to_screen(const vec3f *p) {
-    int W2 = XF_GetWindowWidth() >> 1;
-    int H2 = XF_GetWindowHeight() >> 1;
+    int W2 = FL_GetWindowWidth() >> 1;
+    int H2 = FL_GetWindowHeight() >> 1;
 
     vec2f temp = {
         W2 + W2 * p->x,
@@ -52,19 +52,19 @@ vec2f camera_to_screen(const vec3f *p) {
 }
 
 int main() {
-    if(!XF_Initialize(640, 480))
+    if(!FL_Initialize(640, 480))
         return -1;
 
-    XF_SetTitle("Follia - 3D Example");
+    FL_SetTitle("Follia - 3D Example");
 
-    XF_FontBDF *knxt = XF_LoadFontBDF("data/fonts/knxt.bdf");
-    XF_FontBDF *bitocra_39 = XF_LoadFontBDF("data/fonts/bitocra-39.bdf");
+    FL_FontBDF *knxt = FL_LoadFontBDF("data/fonts/knxt.bdf");
+    FL_FontBDF *bitocra_39 = FL_LoadFontBDF("data/fonts/bitocra-39.bdf");
 
     if(!knxt || !bitocra_39) {
-        if(!knxt) XF_FreeFontBDF(knxt);
-        if(!bitocra_39) XF_FreeFontBDF(bitocra_39);
+        if(!knxt) FL_FreeFontBDF(knxt);
+        if(!bitocra_39) FL_FreeFontBDF(bitocra_39);
         
-        XF_Close();
+        FL_Close();
         return -1;
     }
 
@@ -81,10 +81,10 @@ int main() {
     const int fps_text_s = 64;
     char fps_text[fps_text_s];
 
-    XF_Event event;
-    while(!XF_WindowShouldClose()) {
-        while(XF_GetEvent(&event)) {
-            if(event.type == XF_EVENT_KEY_PRESSED) {
+    FL_Event event;
+    while(!FL_WindowShouldClose()) {
+        while(FL_GetEvent(&event)) {
+            if(event.type == FL_EVENT_KEY_PRESSED) {
                 const float CAM_SPEED = 0.001f;
                 switch(event.key.code) {
                     case 'w': camera_velocity.z = CAM_SPEED; break;
@@ -93,23 +93,23 @@ int main() {
                     case 'd': camera_velocity.x = CAM_SPEED; break;
                     default: break;
                 }
-            } else if(event.type == XF_EVENT_KEY_RELEASED) {
+            } else if(event.type == FL_EVENT_KEY_RELEASED) {
                 switch(event.key.code) {
                     case 'w': case 's': camera_velocity.z = 0.f; break;
                     case 'a': case 'd': camera_velocity.x = 0.f; break;
                     default: break;
                 }
-            } else if(event.type == XF_EVENT_MOUSE_PRESSED) {
+            } else if(event.type == FL_EVENT_MOUSE_PRESSED) {
             }
         }
 
-        camera_position.x += camera_velocity.x * XF_GetDeltaTime();
-        camera_position.y += camera_velocity.y * XF_GetDeltaTime();
-        camera_position.z += camera_velocity.z * XF_GetDeltaTime();
+        camera_position.x += camera_velocity.x * FL_GetDeltaTime();
+        camera_position.y += camera_velocity.y * FL_GetDeltaTime();
+        camera_position.z += camera_velocity.z * FL_GetDeltaTime();
 
-        snprintf(fps_text, fps_text_s, "MS: %.2f\nFPS: %.2f", XF_GetDeltaTime(), 1000.0 / XF_GetDeltaTime());
+        snprintf(fps_text, fps_text_s, "MS: %.2f\nFPS: %.2f", FL_GetDeltaTime(), 1000.0 / FL_GetDeltaTime());
 
-        XF_ClearScreen();
+        FL_ClearScreen();
         { // render triangles
             for(int p = 0; p < 1; ++p) {
                 vec3f translated[3] = {
@@ -152,18 +152,18 @@ int main() {
                     vec2f *p0 = &screen[i];
                     vec2f *p1 = &screen[(i < 2 ? i + 1 : 0)]; 
 
-                    XF_DrawLine(p0->x, p0->y, p1->x, p1->y, 0xff0000);
+                    FL_DrawLine(p0->x, p0->y, p1->x, p1->y, 0xff0000);
                 }
             }
         }
 
-        XF_DrawText(10, 10, fps_text, fps_text_s, XF_GetWindowWidth(), knxt);
-        XF_Render();
+        FL_DrawText(10, 10, fps_text, fps_text_s, FL_GetWindowWidth(), knxt);
+        FL_Render();
     }
 
-    XF_FreeFontBDF(bitocra_39);
-    XF_FreeFontBDF(knxt);
+    FL_FreeFontBDF(bitocra_39);
+    FL_FreeFontBDF(knxt);
 
-    XF_Close();
+    FL_Close();
     return 0;
 }

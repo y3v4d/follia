@@ -1,4 +1,5 @@
-#include "x11framework.h"
+#include "follia.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -15,7 +16,7 @@ struct Object {
     float v;
 
     int lives;
-    XF_Bool is_bottom;
+    FL_Bool is_bottom;
 };
 
 struct Object* create_bullet(float x, float y) {
@@ -31,38 +32,38 @@ struct Object* create_bullet(float x, float y) {
 }
 
 int main() {
-    if(!XF_Initialize(640, 480))
+    if(!FL_Initialize(640, 480))
         exit(-1);
 
     srand(time(NULL));
 
-    XF_FontBDF* knxt_font = XF_LoadFontBDF("data/fonts/knxt.bdf");
+    FL_FontBDF* knxt_font = FL_LoadFontBDF("data/fonts/knxt.bdf");
     if(!knxt_font) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't load knxt font!\n");
+        FL_WriteLog(FL_LOG_ERROR, "Couldn't load knxt font!\n");
         
-        XF_Close();
+        FL_Close();
         return -1;
     }
 
-    XF_Texture* ship_texture = XF_LoadTexture("data/space-invaders/ship.bmp");
-    XF_Texture* alien0_texture = XF_LoadTexture("data/space-invaders/alien0.bmp");
-    XF_Texture* alien1_texture = XF_LoadTexture("data/space-invaders/alien1.bmp");
+    FL_Texture* ship_texture = FL_LoadTexture("data/space-invaders/ship.bmp");
+    FL_Texture* alien0_texture = FL_LoadTexture("data/space-invaders/alien0.bmp");
+    FL_Texture* alien1_texture = FL_LoadTexture("data/space-invaders/alien1.bmp");
     if(!ship_texture || !alien0_texture || !alien1_texture) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't load images!\n");
+        FL_WriteLog(FL_LOG_ERROR, "Couldn't load images!\n");
 
-        if(ship_texture) XF_FreeTexture(ship_texture);
-        if(alien0_texture) XF_FreeTexture(alien0_texture);
-        if(alien1_texture) XF_FreeTexture(alien1_texture);
+        if(ship_texture) FL_FreeTexture(ship_texture);
+        if(alien0_texture) FL_FreeTexture(alien0_texture);
+        if(alien1_texture) FL_FreeTexture(alien1_texture);
 
-        XF_FreeFontBDF(knxt_font);
+        FL_FreeFontBDF(knxt_font);
 
-        XF_Close();
+        FL_Close();
         return -1;
     }
 
     struct Object player = { 0.f, 0.f, (float)ship_texture->width, (float)ship_texture->height, 0.f, 3, false };
-    player.x = ((float)XF_GetWindowWidth() - player.w) / 2.f;
-    player.y = (float)XF_GetWindowHeight() - 2.f * player.h;
+    player.x = ((float)FL_GetWindowWidth() - player.w) / 2.f;
+    player.y = (float)FL_GetWindowHeight() - 2.f * player.h;
 
     char lives_text[64];
     snprintf(lives_text, 64, "Lives: %d", player.lives);
@@ -90,24 +91,24 @@ int main() {
     }
 
     int aliens_on_bottom = ALIENS_HOR;
-    XF_Bool alien_walk_animation = false;
+    FL_Bool alien_walk_animation = false;
 
-    XF_Timer alien_timer;
-    XF_StartTimer(&alien_timer);
+    FL_Timer alien_timer;
+    FL_StartTimer(&alien_timer);
 
-    XF_Timer alien_walk_timer;
-    XF_StartTimer(&alien_walk_timer);
+    FL_Timer alien_walk_timer;
+    FL_StartTimer(&alien_walk_timer);
 
-    XF_SetClearColor(0);
-    XF_SetTextColor(0xffffff);
+    FL_SetClearColor(0);
+    FL_SetTextColor(0xffffff);
 
-    XF_Event event;
-    while(!XF_WindowShouldClose()) {
-        while(XF_GetEvent(&event)) {
-            if(event.type == XF_EVENT_KEY_PRESSED) {
+    FL_Event event;
+    while(!FL_WindowShouldClose()) {
+        while(FL_GetEvent(&event)) {
+            if(event.type == FL_EVENT_KEY_PRESSED) {
                 switch(event.key.code) {
-                    case 'a': player.v = -PLAYER_SPEED * XF_GetDeltaTime(); break;
-                    case 'd': player.v = PLAYER_SPEED * XF_GetDeltaTime(); break;
+                    case 'a': player.v = -PLAYER_SPEED * FL_GetDeltaTime(); break;
+                    case 'd': player.v = PLAYER_SPEED * FL_GetDeltaTime(); break;
                     case ' ':
                         if(bullets[0] == NULL) {
                             bullets[0] = create_bullet(player.x + player.w / 2, player.y + player.h / 2);
@@ -117,7 +118,7 @@ int main() {
                         break;
                     default: break;
                 }
-            } else if(event.type == XF_EVENT_KEY_RELEASED) {
+            } else if(event.type == FL_EVENT_KEY_RELEASED) {
                 switch(event.key.code) {
                     case 'a': case 'd': player.v = 0.f; break;
                     default: break;
@@ -148,7 +149,7 @@ int main() {
                     // assign bottom to another alien, or substract aliens_on_bottom when there are no more aliens behind
                     if(aliens[i]->is_bottom) {
                         int new_bottom = i - ALIENS_HOR; 
-                        XF_Bool success = false;
+                        FL_Bool success = false;
                         
                         while(new_bottom >= 0) {
                             if(aliens[new_bottom] != NULL) {
@@ -169,7 +170,7 @@ int main() {
         }
 
         // allow aliens to shoot bullets
-        XF_StopTimer(&alien_timer);
+        FL_StopTimer(&alien_timer);
         if(alien_timer.delta >= 1500 && bullets[1] == NULL && aliens_on_bottom > 0) {
             int r = rand() % aliens_on_bottom;
 
@@ -180,7 +181,7 @@ int main() {
                         bullets[1] = create_bullet(aliens[i]->x + aliens[i]->w / 2, aliens[i]->y + aliens[i]->h / 2);
                         bullets[1]->v = BULLET_SPEED;
 
-                        XF_StartTimer(&alien_timer);
+                        FL_StartTimer(&alien_timer);
 
                         break;
                     } else ++omitted;
@@ -188,14 +189,14 @@ int main() {
             }
         }
 
-        if(player.x > XF_GetWindowWidth()) {
+        if(player.x > FL_GetWindowWidth()) {
             player.x = -player.w;
         }
 
         if(bullets[1] != NULL) {
             bullets[1]->y += bullets[1]->v;
 
-            if(bullets[1]->y > XF_GetWindowHeight()) {
+            if(bullets[1]->y > FL_GetWindowHeight()) {
                 free(bullets[1]);
                 bullets[1] = NULL;
             } else if(bullets[1]->x + bullets[1]->w >= player.x && bullets[1]->x <= player.x + player.w &&
@@ -214,8 +215,8 @@ int main() {
             if(aliens[i] != NULL) {
                 float offset = 0;
 
-                if(aliens[i]->x + aliens[i]->w > XF_GetWindowWidth()) {
-                    offset = aliens[i]->x + aliens[i]->w - (float)XF_GetWindowWidth();
+                if(aliens[i]->x + aliens[i]->w > FL_GetWindowWidth()) {
+                    offset = aliens[i]->x + aliens[i]->w - (float)FL_GetWindowWidth();
                 } else if(aliens[i]->x < 0) {
                     offset = aliens[i]->x;
                 }
@@ -234,36 +235,36 @@ int main() {
             }
         }
 
-        XF_StopTimer(&alien_walk_timer);
+        FL_StopTimer(&alien_walk_timer);
         if(alien_walk_timer.delta >= 500) {
             alien_walk_animation = !alien_walk_animation;
-            XF_StartTimer(&alien_walk_timer);
+            FL_StartTimer(&alien_walk_timer);
         }
 
-        XF_ClearScreen();
+        FL_ClearScreen();
         for(int i = 0; i < 2; ++i)
-            if(bullets[i] != NULL) XF_DrawRect(bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h, 0xffffff, false);
+            if(bullets[i] != NULL) FL_DrawRect(bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h, 0xffffff, false);
 
         for(int i = 0; i < TOTAL_ALIENS; ++i) {
             if(aliens[i] != NULL) {
-                XF_DrawTexture((!alien_walk_animation ? alien0_texture : alien1_texture), aliens[i]->x, aliens[i]->y);
+                FL_DrawTexture((!alien_walk_animation ? alien0_texture : alien1_texture), aliens[i]->x, aliens[i]->y);
             }
         }
 
-        XF_DrawTexture(ship_texture, player.x, player.y);
+        FL_DrawTexture(ship_texture, player.x, player.y);
 
-        XF_DrawText(10, 10, lives_text, 16, 200, knxt_font);
-        XF_Render();
+        FL_DrawText(10, 10, lives_text, 16, 200, knxt_font);
+        FL_Render();
     }
 
     for(int i = 0; i < 2; ++i) if(bullets[i] != NULL) free(bullets[i]);
     for(int i = 0; i < TOTAL_ALIENS; ++i) if(aliens[i] != NULL) free(aliens[i]);
 
-    XF_FreeFontBDF(knxt_font);
-    XF_FreeTexture(ship_texture);
-    XF_FreeTexture(alien0_texture);
-    XF_FreeTexture(alien1_texture);
+    FL_FreeFontBDF(knxt_font);
+    FL_FreeTexture(ship_texture);
+    FL_FreeTexture(alien0_texture);
+    FL_FreeTexture(alien1_texture);
     
-    XF_Close();
+    FL_Close();
     return 0;
 }

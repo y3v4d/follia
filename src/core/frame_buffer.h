@@ -1,5 +1,5 @@
-#ifndef xf_frame_buffer_h
-#define xf_frame_buffer_h
+#ifndef __FL_FRAME_BUFFER_H__
+#define __FL_FRAME_BUFFER_H__
 
 #include <stdint.h>
 

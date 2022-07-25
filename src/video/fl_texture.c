@@ -1,6 +1,6 @@
-#include "video/xf_texture.h"
-#include "core/xf_log.h"
-#include "core/xf_system.h"
+#include "video/fl_texture.h"
+#include "core/fl_log.h"
+#include "core/fl_system.h"
 #include "../core/frame_buffer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -10,17 +10,17 @@
 #include <stdlib.h>
 #include <math.h>
 
-XF_Texture* XF_LoadTexture(const char *path) {
-    XF_Texture *temp = (XF_Texture*)malloc(sizeof(XF_Texture));
+FL_Texture* FL_LoadTexture(const char *path) {
+    FL_Texture *temp = (FL_Texture*)malloc(sizeof(FL_Texture));
     if(!temp) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for sprite!\n");
+        FL_WriteLog(FL_LOG_ERROR, "Couldn't allocate memory for sprite!\n");
         return NULL;
     }
 
     int n;
     unsigned char *data = stbi_load(path, &temp->width, &temp->height, &n, 0);
     if(!data) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't load %s file!\n", path);
+        FL_WriteLog(FL_LOG_ERROR, "Couldn't load %s file!\n", path);
         
         free(temp);
         return NULL;
@@ -51,9 +51,9 @@ XF_Texture* XF_LoadTexture(const char *path) {
     return temp;
 }
 
-void XF_FreeTexture(XF_Texture *o) {
+void FL_FreeTexture(FL_Texture *o) {
     if(!o) {
-        XF_WriteLog(XF_LOG_WARNING, "[XF_FreeTexture] Cannot free NULL pointer\n");
+        FL_WriteLog(FL_LOG_WARNING, "[FL_FreeTexture] Cannot free NULL pointer\n");
         return;
     }
 
@@ -61,8 +61,8 @@ void XF_FreeTexture(XF_Texture *o) {
     free(o);
 }
 
-void XF_DrawTexture(const XF_Texture *s, int x, int y) {
-    if(x + s->width < 0 || x >= XF_GetWindowWidth() || y + s->height < 0 || y >= XF_GetWindowHeight()) return;
+void FL_DrawTexture(const FL_Texture *s, int x, int y) {
+    if(x + s->width < 0 || x >= FL_GetWindowWidth() || y + s->height < 0 || y >= FL_GetWindowHeight()) return;
 
     uint32_t *start_line = s->data;
     int w = s->width, h = s->height;
@@ -80,11 +80,11 @@ void XF_DrawTexture(const XF_Texture *s, int x, int y) {
         y = 0;
     }
 
-    if(w + x > XF_GetWindowWidth()) {
-        w = XF_GetWindowWidth() - x;
+    if(w + x > FL_GetWindowWidth()) {
+        w = FL_GetWindowWidth() - x;
     }
-    if(h + y > XF_GetWindowHeight()) {
-        h = XF_GetWindowHeight() - y;
+    if(h + y > FL_GetWindowHeight()) {
+        h = FL_GetWindowHeight() - y;
     }
         
     uint32_t *frame = h_lines[y] + x;
@@ -100,14 +100,14 @@ void XF_DrawTexture(const XF_Texture *s, int x, int y) {
             frame++;
         }
         
-        frame += XF_GetWindowWidth() - w;
+        frame += FL_GetWindowWidth() - w;
         start_line += s->width;
     }
 }
 
-void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
+void FL_DrawTextureScaled(const FL_Texture *s, int x, int y, int w, int h) {
     if(w <= 0 || h <= 0) return;
-    if(x + w < 0 || x >= XF_GetWindowWidth() || y + h < 0 || y >= XF_GetWindowHeight()) return;
+    if(x + w < 0 || x >= FL_GetWindowWidth() || y + h < 0 || y >= FL_GetWindowHeight()) return;
 
     int ren_w = w, ren_h = h;
 
@@ -138,11 +138,11 @@ void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
             h_counter -= h;
         }
     }
-    if(ren_w + x > XF_GetWindowWidth()) {
-        ren_w = XF_GetWindowWidth() - x;
+    if(ren_w + x > FL_GetWindowWidth()) {
+        ren_w = FL_GetWindowWidth() - x;
     }
-    if(ren_h + y > XF_GetWindowHeight()) {
-        ren_h = XF_GetWindowHeight() - y;
+    if(ren_h + y > FL_GetWindowHeight()) {
+        ren_h = FL_GetWindowHeight() - y;
     }
 
     uint32_t *frame = h_lines[y] + x;
@@ -166,7 +166,7 @@ void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
             }
         }
 
-        frame += XF_GetWindowWidth() - ren_w;
+        frame += FL_GetWindowWidth() - ren_w;
 
         h_counter += s->height;
         while(h_counter >= h) {

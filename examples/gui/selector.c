@@ -1,6 +1,6 @@
 #include "selector.h"
 
-XF_Bool check_collision(int rx, int ry, int rw, int rh, int px, int py) {
+FL_Bool check_collision(int rx, int ry, int rw, int rh, int px, int py) {
     return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
 }
 
@@ -11,10 +11,10 @@ void initialize_selector(struct PrimitiveSelector *selector) {
     selector->recent_change = false;
 }
 
-void process_selector(struct PrimitiveSelector *selector, const XF_MouseEvent *event) {
+void process_selector(struct PrimitiveSelector *selector, const FL_MouseEvent *event) {
     selector->recent_change = false;
 
-    if(event->type == XF_EVENT_MOUSE_PRESSED) {
+    if(event->type == FL_EVENT_MOUSE_PRESSED) {
         if(!selector->expanded && check_collision(selector->x, selector->y, selector->w, selector->h, event->x, event->y)) {
             selector->expanded = true;
         } else if(selector->expanded) {
@@ -39,8 +39,8 @@ void process_selector(struct PrimitiveSelector *selector, const XF_MouseEvent *e
 void _draw_option(const struct PrimitiveSelector *selector, int option, int place) {
     const int start_y = selector->y + place * selector->h;
 
-    XF_DrawRect(selector->x, start_y, selector->w, selector->h, 0xff666666, false);
-    XF_DrawRect(selector->x, start_y, selector->w, selector->h, 0, true);
+    FL_DrawRect(selector->x, start_y, selector->w, selector->h, 0xff666666, false);
+    FL_DrawRect(selector->x, start_y, selector->w, selector->h, 0, true);
      
     const int figure_width = (selector->h < selector->w ? selector->h * 0.6 : selector->w * 0.6);
     const int center_x = selector->x + selector->w / 2;
@@ -48,10 +48,10 @@ void _draw_option(const struct PrimitiveSelector *selector, int option, int plac
 
     switch(option) {
         case PRIMITIVE_LINE:
-            XF_DrawLine(center_x - figure_width / 2, center_y - figure_width / 2, center_x + figure_width / 2, center_y + figure_width / 2, 0xff00ff00);
+            FL_DrawLine(center_x - figure_width / 2, center_y - figure_width / 2, center_x + figure_width / 2, center_y + figure_width / 2, 0xff00ff00);
             break;
         case PRIMITIVE_RECT: 
-            XF_DrawRect(center_x - figure_width / 2, center_y - figure_width / 2, figure_width, figure_width, 0xffff0000, false);  
+            FL_DrawRect(center_x - figure_width / 2, center_y - figure_width / 2, figure_width, figure_width, 0xffff0000, false);  
             break;
         default: break;
     }

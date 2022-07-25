@@ -9,14 +9,14 @@ struct PrimitiveSelector {
     float x, y;
     float w, h;
 
-    XF_Bool expanded;
+    FL_Bool expanded;
     int current_option;
 
-    XF_Bool recent_change;
+    FL_Bool recent_change;
 };
 
 void initialize_selector(struct PrimitiveSelector *selector);
-void process_selector(struct PrimitiveSelector *selector, const XF_MouseEvent *event);
+void process_selector(struct PrimitiveSelector *selector, const FL_MouseEvent *event);
 void draw_selector(const struct PrimitiveSelector *selector);
 
 #endif

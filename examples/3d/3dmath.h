@@ -1,5 +1,5 @@
-#ifndef _3dmath_h_
-#define _3dmath_h_
+#ifndef __3DMATH_H__
+#define __3DMATH_H__
 
 #define PI 3.14159
 

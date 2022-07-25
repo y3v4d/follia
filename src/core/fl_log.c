@@ -1,4 +1,4 @@
-#include "core/xf_log.h"
+#include "core/fl_log.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -6,10 +6,10 @@
 
 FILE *log_file = NULL;
 char path[64];
-XF_Bool initialized = false;
+FL_Bool initialized = false;
 
-XF_Bool XF_InitializeLog() {
-    if(!XF_LOG_ENABLED) return true;
+FL_Bool FL_InitializeLog() {
+    if(!FL_LOG_ENABLED) return true;
 
     if(initialized) {
         printf("[WARNING] Log file is already opened");
@@ -37,8 +37,8 @@ XF_Bool XF_InitializeLog() {
     return true;
 }
 
-void XF_WriteLog(enum XF_LogType type, const char *format, ...) {
-    if(!XF_LOG_ENABLED) return;
+void FL_WriteLog(enum FL_LogType type, const char *format, ...) {
+    if(!FL_LOG_ENABLED) return;
 
     if(!initialized) return;
 
@@ -49,9 +49,9 @@ void XF_WriteLog(enum XF_LogType type, const char *format, ...) {
     }
 
     switch(type) {
-        case XF_LOG_INFO: fprintf(log_file, "[INFO] "); break;
-        case XF_LOG_WARNING: fprintf(log_file, "[WARNING] "); break;
-        case XF_LOG_ERROR: fprintf(log_file, "[ERROR] "); break;
+        case FL_LOG_INFO: fprintf(log_file, "[INFO] "); break;
+        case FL_LOG_WARNING: fprintf(log_file, "[WARNING] "); break;
+        case FL_LOG_ERROR: fprintf(log_file, "[ERROR] "); break;
         default: break;
     }
 
@@ -60,7 +60,7 @@ void XF_WriteLog(enum XF_LogType type, const char *format, ...) {
     vfprintf(log_file, format, args);
     va_end(args);
 
-    if(type == XF_LOG_ERROR) {
+    if(type == FL_LOG_ERROR) {
         va_start(args, format);
         fprintf(stderr, "[ERROR] ");
         vfprintf(stderr, format, args);

@@ -1,18 +1,18 @@
-#include "core/xf_timer.h"
-#include "core/xf_log.h"
+#include "core/fl_timer.h"
+#include "core/fl_log.h"
 
-void XF_StartTimer(XF_Timer* timer) {
+void FL_StartTimer(FL_Timer* timer) {
     if(!timer) {
-        XF_WriteLog(XF_LOG_ERROR, "Invalid timer passed to XF_StartTimer!\n");
+        FL_WriteLog(FL_LOG_ERROR, "Invalid timer passed to FL_StartTimer!\n");
         return;
     }
 
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer->start);
 }
 
-void XF_StopTimer(XF_Timer* timer) {
+void FL_StopTimer(FL_Timer* timer) {
     if(!timer) {
-        XF_WriteLog(XF_LOG_ERROR, "Invalid timer passed to XF_EndTimer!\n");
+        FL_WriteLog(FL_LOG_ERROR, "Invalid timer passed to FL_EndTimer!\n");
         return;
     }
 

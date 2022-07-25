@@ -1,33 +1,33 @@
-#ifndef xf_font_h
-#define xf_font_h
+#ifndef __FL_FONT_H__
+#define __FL_FONT_H__
 
 #include <stdint.h>
 
-typedef struct _XF_CharBDF XF_CharBDF;
+typedef struct _FL_CharBDF FL_CharBDF;
 
-typedef struct _XF_FontBDF {
+typedef struct {
     uint32_t char_number; // amount of characters in font
     uint32_t start_char; // first character in font
 
     int32_t fbbw, fbbh; // general width and height of the individual character
 
-    XF_CharBDF **chars; // user don't have to know about character implementation
-} XF_FontBDF;
+    FL_CharBDF **chars; // user don't have to know about character implementation
+} FL_FontBDF;
 
 /*
- * XF_LoadFontBDF
- * Load .bdf font and stores everything in newly allocated XF_FontBDF structure.
+ * FL_LoadFontBDF
+ * Load .bdf font and stores everything in newly allocated FL_FontBDF structure.
  * If it doesn't succeed (for whatever reason), will return NULL.
  *
  * path - path to the file relative to current directory (not always the directory with executable)
  */
-XF_FontBDF* XF_LoadFontBDF(const char *path);
-void XF_FreeFontBDF(XF_FontBDF *font);
+FL_FontBDF* FL_LoadFontBDF(const char *path);
+void FL_FreeFontBDF(FL_FontBDF *font);
 
-void XF_SetTextColor(uint32_t color);
+void FL_SetTextColor(uint32_t color);
 
 /*
- * XF_DrawText
+ * FL_DrawText
  * Support multiline text rendering (properly wraps text and reads \n character).
  *
  * x, y - coordinates
@@ -36,6 +36,6 @@ void XF_SetTextColor(uint32_t color);
  * max_width - text will render only in range from x to x + max_width. Additional text will be displaced to the next line.
  * font - font to use for rendering
  */
-void XF_DrawText(int x, int y, const char *text, int max_size, int max_width, XF_FontBDF *font);
+void FL_DrawText(int x, int y, const char *text, int max_size, int max_width, FL_FontBDF *font);
 
 #endif
