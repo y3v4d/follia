@@ -287,7 +287,7 @@ XF_Bool XF_GetEvent(XF_Event* pevent) {
                 pevent->mouse.button = recent_button;
                 break;
             case ClientMessage:
-                if(x_event.xclient.data.l[0] == wm_delete_window)
+                if((unsigned long)x_event.xclient.data.l[0] == wm_delete_window)
                     x_window_close = true;
                 break;
             default: if(X_USE_SHM && x_event.type == x_shm_completion) shm_complete = true; break;

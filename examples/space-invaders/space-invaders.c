@@ -44,9 +44,9 @@ int main() {
         return -1;
     }
 
-    XF_Texture* ship_texture = XF_LoadBMP("data/space-invaders/ship.bmp");
-    XF_Texture* alien0_texture = XF_LoadBMP("data/space-invaders/alien0.bmp");
-    XF_Texture* alien1_texture = XF_LoadBMP("data/space-invaders/alien1.bmp");
+    XF_Texture* ship_texture = XF_LoadTexture("data/space-invaders/ship.bmp");
+    XF_Texture* alien0_texture = XF_LoadTexture("data/space-invaders/alien0.bmp");
+    XF_Texture* alien1_texture = XF_LoadTexture("data/space-invaders/alien1.bmp");
     if(!ship_texture || !alien0_texture || !alien1_texture) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't load images!\n");
 
@@ -60,7 +60,7 @@ int main() {
         return -1;
     }
 
-    struct Object player = { 0.f, 0.f, (float)ship_texture->width, (float)ship_texture->height, 0.f, 3 };
+    struct Object player = { 0.f, 0.f, (float)ship_texture->width, (float)ship_texture->height, 0.f, 3, false };
     player.x = ((float)XF_GetWindowWidth() - player.w) / 2.f;
     player.y = (float)XF_GetWindowHeight() - 2.f * player.h;
 

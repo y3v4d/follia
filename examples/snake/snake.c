@@ -35,7 +35,7 @@ int main() {
     for(unsigned i = 0; i < MAX_PARTS; ++i) parts[i] = NULL;
 
     unsigned length = 3;
-    for(int i = 0; i < length; ++i) parts[i] = create_vector(length - 1 - i, 0);
+    for(unsigned i = 0; i < length; ++i) parts[i] = create_vector(length - 1 - i, 0);
     
     vector_t apple = { rand() % FIELD_W, rand() % FIELD_H };
     uint8_t direction = 0; // 0 - R, 1 - L, 2 - U, 3 - D
@@ -97,7 +97,7 @@ int main() {
                             apple.x = rand() % FIELD_W; apple.y = rand() % FIELD_H;
 
                             passed = true;
-                            for(int i = 0; i < length; ++i) {
+                            for(unsigned i = 0; i < length; ++i) {
                                 if(parts[i]->x == apple.x && parts[i]->y == apple.y) {
                                     passed = false;
                                     break;

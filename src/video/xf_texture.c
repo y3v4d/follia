@@ -3,111 +3,62 @@
 #include "core/xf_system.h"
 #include "../core/frame_buffer.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "lib/stb_image.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-// convert 32-bit little endian number to cpu number
-// gets pointer to beginning of the 4-size uint8_t array
-uint32_t le32_to_cpu(uint8_t *n) {
-    return ((uint32_t)n[0] | (uint32_t)(n[1] << 8) | (uint32_t)(n[2] << 16) | (uint32_t)(n[3] << 24));
-}
-
-// function loads only BMP files with compression BI_RGB24 and BGR format
-XF_Texture* XF_LoadBMP(const char *path) {
+XF_Texture* XF_LoadTexture(const char *path) {
     XF_Texture *temp = (XF_Texture*)malloc(sizeof(XF_Texture));
     if(!temp) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for sprite!\n");
         return NULL;
     }
 
-    FILE *file = fopen(path, "rb");
-    if(!file) {
+    int n;
+    unsigned char *data = stbi_load(path, &temp->width, &temp->height, &n, 0);
+    if(!data) {
         XF_WriteLog(XF_LOG_ERROR, "Couldn't load %s file!\n", path);
         
         free(temp);
         return NULL;
     }
 
-    uint8_t buffer[40];
-    
-    fread(buffer, 1, 14, file); // read header
-    if(buffer[0] != 'B' || buffer[1] != 'M') {
-        XF_WriteLog(XF_LOG_ERROR, "Invalid file %s format!\n", path);
-
-        free(temp);
-        return NULL;
-    }
-
-    fread(buffer, 1, 40, file); // read info header
-    if(feof(file)) {
-        XF_WriteLog(XF_LOG_ERROR, "Invalid information header %s format!\n", path);
-
-        free(temp);
-        return NULL;
-    }
-
-    temp->width = le32_to_cpu(buffer + 4);
-    temp->height = le32_to_cpu(buffer + 8);
-
-    unsigned size = temp->width * temp->height;
-
+    const int size = temp->width * temp->height;
     temp->data = (uint32_t*)malloc(size * sizeof(uint32_t));
-    if(!temp->data) {
-        XF_WriteLog(XF_LOG_ERROR, "Couldn't allocate memory for sprite data!\n");
 
-        free(temp);
-        return NULL;
-    }
-
-    /*
-     * 32-bit data variable stores 4 bytes in right-to-left order, so
-     * with the BGR format of .bmp files there's no need to flip the bytes
-     * if data is read 3 bytes at once.
-     *
-     * uint32_t = 0xaabbccdd
-     *              3 2 1 0
-     *  B   G   R  |  B   G   R  | ...
-     * [0] [1] [2]   [0] [1] [2]
-     *
-     * Final: 0x00RRGGBB (no need to flip the bytes)
-     */
-    for(unsigned i = 0; i < size; ++i) {
-        fread(&temp->data[i], 3, 1, file);
-    }
-
-    for(unsigned y = 0; y < temp->height / 2; ++y) {
-        for(unsigned x = 0; x < temp->width; ++x) {
-            const int start_y = y * temp->width;
-
-            uint32_t swap = temp->data[start_y + x];
-            temp->data[start_y + x] = temp->data[size - start_y - temp->width + x];
-            temp->data[size - start_y - temp->width + x] = swap;
+    // translate raw image data to faster RGBA texture format
+    // one pixel: 0xaabbggrr
+    uint8_t *p = data;
+    for(int i = 0; i < size; ++i) {
+        if(n == 1) { // GRAY
+            temp->data[i] = (uint32_t)(*p << 16 | *p << 8 | *p);
+        } else if(n == 2) { // GRAY-ALPHA
+            temp->data[i] = (uint32_t)(p[1] << 24 | *p << 16 | *p << 8 | *p);
+        } else if(n == 3) { // RGB
+            temp->data[i] = (uint32_t)(p[2] << 16 | p[1] << 8 | p[0]);
+        } else if(n == 4) { // RGBA
+            temp->data[i] = (uint32_t)(p[3] << 24 | p[2] << 16 | p[1] << 8 | p[0]);
         }
+
+        p += n;
     }
 
-    if(feof(file)) {
-        XF_WriteLog(XF_LOG_ERROR, "Unexpected end of the %s file!\n");
-
-        free(temp->data);
-        free(temp);
-        return NULL;
-    }
-
-    fclose(file);
+    stbi_image_free(data);
+    
     return temp;
 }
 
 void XF_FreeTexture(XF_Texture *o) {
     if(!o) {
-        XF_WriteLog(XF_LOG_WARNING, "Cannot free NULL sprite pointer\n");
+        XF_WriteLog(XF_LOG_WARNING, "[XF_FreeTexture] Cannot free NULL pointer\n");
         return;
     }
 
     free(o->data);
     free(o);
-
-    o = NULL;
 }
 
 void XF_DrawTexture(const XF_Texture *s, int x, int y) {
@@ -145,10 +96,8 @@ void XF_DrawTexture(const XF_Texture *s, int x, int y) {
         hz_count = w;
 
         while(hz_count--) {
-            uint32_t pixel = *tex++;
-
-            if(pixel != 0xff00ff) *frame++ = pixel;
-            else frame++;
+            if(*tex != 0xff00ff) *frame = *tex++;
+            frame++;
         }
         
         frame += XF_GetWindowWidth() - w;
@@ -197,7 +146,7 @@ void XF_DrawTextureScaled(const XF_Texture *s, int x, int y, int w, int h) {
     }
 
     uint32_t *frame = h_lines[y] + x;
-    uint32_t *tex = NULL;;
+    uint32_t *tex = NULL;
 
     int hz_count = 0;
     int v_count = ren_h;
