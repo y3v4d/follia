@@ -3,7 +3,33 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "3dmath.h"
+#define PI 3.14159
+
+typedef struct {
+    float x;
+    float y;
+} vec2f;
+
+typedef struct {
+    float x;
+    float y;
+    float z;
+} vec3f;
+
+typedef struct {
+    float x;
+    float y;
+    float z;
+    float w;
+} vec4f;
+
+typedef struct {
+    float m[9];
+} mat3;
+
+typedef struct {
+    float m[16];
+} mat4;
 
 mat4 get_perspective_projection(float fov) {
     mat4 temp = {
