@@ -1,6 +1,7 @@
 #ifndef __FL_FONT_H__
 #define __FL_FONT_H__
 
+#include "video/fl_texture.h"
 #include <stdint.h>
 
 typedef struct _FL_CharBDF FL_CharBDF;
@@ -14,6 +15,26 @@ typedef struct {
     FL_CharBDF **chars; // user don't have to know about character implementation
 } FL_FontBDF;
 
+typedef struct {
+    uint16_t id;
+
+    uint16_t x, y; // position in texture
+    uint16_t w, h; // size in texture
+
+    uint16_t x_off, y_off;
+    uint16_t x_adv;
+} FL_CharFNT;
+
+typedef struct {
+    uint16_t count;
+    uint16_t start_char;
+
+    int size;
+
+    FL_Texture *texture;
+    FL_CharFNT *chars;
+} FL_FontFNT;
+
 /*
  * FL_LoadFontBDF
  * Load .bdf font and stores everything in newly allocated FL_FontBDF structure.
@@ -26,6 +47,9 @@ void FL_FreeFontBDF(FL_FontBDF *font);
 
 void FL_SetTextColor(uint32_t color);
 
+FL_FontFNT* FL_LoadFontFNT(const char *path);
+void FL_FreeFontFNT(FL_FontFNT *o);
+
 /*
  * FL_DrawText
  * Support multiline text rendering (properly wraps text and reads \n character).
@@ -37,5 +61,5 @@ void FL_SetTextColor(uint32_t color);
  * font - font to use for rendering
  */
 void FL_DrawText(int x, int y, const char *text, int max_size, int max_width, FL_FontBDF *font);
-
+void FL_DrawTextFNT(int x, int y, const char *text, int size, int max_width, FL_FontFNT *font);
 #endif

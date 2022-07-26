@@ -3,6 +3,7 @@
 #include "core/fl_system.h"
 #include "core/fl_primitives.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -183,6 +184,133 @@ FL_FontBDF* FL_LoadFontBDF(const char *path) {
     return temp;    
 }
 
+int str_to_int(const char *s) {
+    int n = 0;
+
+    while(*s >= '0' && *s <= '9') {
+        n = n * 10 + (*s - '0');
+        ++s;
+    }
+
+    return n;
+}
+
+FL_FontFNT* FL_LoadFontFNT(const char *path) {
+    FL_FontFNT *temp = (FL_FontFNT*)malloc(sizeof(FL_FontFNT));
+    if(!temp) {
+        return NULL;
+    }
+
+    FILE *info = fopen(path, "rb");
+    if(!info) {
+        free(temp);
+        return NULL;
+    }
+
+    const unsigned SIZE = 512;
+    char buffer[SIZE];
+
+    char filename[SIZE];
+    int filename_size = 0;
+
+    while(fgets(buffer, SIZE, info)) {
+        char *found;
+        if((found = strstr(buffer, "file")) != NULL) {
+            const int first = 6;
+            int last = first;
+
+            for(; found[last] != '"'; ++last);
+            filename_size = last - first;
+
+            strncpy(filename, found + first, filename_size);
+            filename[filename_size] = 0;
+
+            printf("Filename: %s\n", filename);
+        }
+
+        if((found = strstr(buffer, "size")) != NULL) {
+            temp->size = str_to_int(found + 5);
+            printf("Size: %d\n", temp->size);
+        }
+
+        if((found = strstr(buffer, "chars count")) != NULL) {
+            temp->count = str_to_int(found + 12);
+            printf("Chars count: %d\n", temp->count);
+            break;
+        }
+    }
+
+    int last_slash = 0;
+    for(int i = 0; path[i] != 0; ++i) {
+        if(path[i] == '/') last_slash = i;
+    }
+
+    char texture_path[SIZE];
+    strncpy(texture_path, path, last_slash + 1);
+    strncpy(texture_path + last_slash + 1, filename, filename_size + 1);
+    printf("Texture path: %s\n", texture_path);
+
+    temp->texture = FL_LoadTexture(texture_path);
+    if(!temp->texture) {
+        free(temp);
+        fclose(info);
+        return NULL;
+    }
+
+    temp->chars = (FL_CharFNT*)malloc(temp->count * sizeof(FL_CharFNT));
+    if(!temp->chars) {
+        FL_FreeTexture(temp->texture);
+        free(temp);
+        fclose(info);
+
+        return NULL;
+    }
+
+    for(int i = 0; i < temp->count; ++i) {
+        FL_CharFNT *c = &temp->chars[i];
+        char *found = NULL;
+
+        fgets(buffer, SIZE, info);
+
+        found = strstr(buffer, "id");
+        c->id = str_to_int(found + 3);
+
+        found = strstr(buffer, "x");
+        c->x = str_to_int(found + 2);
+
+        found = strstr(buffer, "y");
+        c->y = str_to_int(found + 2);
+
+        found = strstr(buffer, "width");
+        c->w = str_to_int(found + 6);
+
+        found = strstr(buffer, "height");
+        c->h = str_to_int(found + 7);
+
+        found = strstr(buffer, "xoffset");
+        c->x_off = str_to_int(found + 8);
+
+        found = strstr(buffer, "yoffset");
+        c->y_off = str_to_int(found + 8);
+
+        found = strstr(buffer, "xadvance");
+        c->x_adv = str_to_int(found + 9);
+    }
+
+    fclose(info);
+
+    return temp;
+}
+
+void FL_FreeFontFNT(FL_FontFNT *o) {
+    if(!o) return;
+
+    if(o->texture) FL_FreeTexture(o->texture);
+    if(o->chars) free(o->chars);
+
+    free(o);
+}
+
 void render_char(int* x, int* y, const char character, FL_FontBDF *font, uint32_t color) {
     FL_CharBDF *picked = NULL;
     
@@ -228,6 +356,71 @@ void render_char(int* x, int* y, const char character, FL_FontBDF *font, uint32_
 void FL_SetTextColor(uint32_t color) {
     if(color <= 0xFFFFFF) text_color = color;
     else FL_WriteLog(FL_LOG_WARNING, "Cannot assign > 0xFFFFFF color to RGB storage!");
+}
+
+void render_char_fnt(int* x, int* y, const char character, FL_FontFNT *font) {
+    FL_CharFNT *picked = NULL;
+    
+    for(int i = 0; i < font->count; ++i) {
+        if(font->chars[i].id == character) {
+            picked = &font->chars[i];
+            break;
+        }
+    }
+
+    if(!picked) {
+       FL_WriteLog(FL_LOG_WARNING, "Cannot render unknown character!\n");
+       return;
+    }
+
+    FL_Texture *tex = font->texture;
+    uint32_t *data = &tex->data[picked->y * tex->width + picked->x];
+
+    int ax = 0, ay = 0;
+
+    int byte_index = 0;
+    for(int i = 0; i < picked->h; ++i) {
+        for(int j = 0; j < picked->w; ++j) {
+            if((*data >> 24)) FL_DrawPoint(*x + picked->x_off + j, *y + picked->y_off + i, *data);
+            ++data;
+        }
+
+        data += (tex->width - picked->w);
+    }
+
+    *x += picked->x_adv;
+}
+
+void FL_DrawTextFNT(int x, int y, const char *text, int size, int max_width, FL_FontFNT *font) {
+    int start_x = x;
+
+    int next_word = 0;
+    for(int i = 0; i < size && text[i] != 0; ++i) {
+        if(i == next_word && i < size - 1) { // check if word has to be moved to another line
+            // search for the next word
+            int s = i + 1;
+            while(text[s] != 0 && text[s] != ' ' && s != size -1) { s++; }
+            
+            if(x + ((s - i) * font->size) >= max_width) { // don't count space for render
+                x = start_x;
+                if(i > 0) y += font->size; // don't move first line if it doesn't fit
+            }
+
+            next_word = (s == size - 1 ? -1 : s + 1); // don't count end of text as another word
+        } else if(x + font->size >= max_width) { // displace letters in word if they don't fit
+            if(text[i] != ' ') {
+                x = start_x;
+                y += font->size;
+            } else continue; // just don't render space if it doesn't fit the line, instead of moving it to another line
+        } else if(text[i] == '\n') {
+            x = start_x;
+            y += font->size;
+
+            continue;
+        }
+
+        render_char_fnt(&x, &y, text[i], font);
+    }
 }
 
 void FL_DrawText(int x, int y, const char *text, int size, int max_width, FL_FontBDF *font) {

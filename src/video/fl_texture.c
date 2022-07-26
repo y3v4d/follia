@@ -21,7 +21,7 @@ FL_Texture* FL_LoadTexture(const char *path) {
     unsigned char *data = stbi_load(path, &temp->width, &temp->height, &n, 0);
     if(!data) {
         FL_WriteLog(FL_LOG_ERROR, "Couldn't load %s file!\n", path);
-        
+        printf("Error: %s\n", stbi_failure_reason());
         free(temp);
         return NULL;
     }

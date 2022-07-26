@@ -8,6 +8,14 @@ int main() {
 
     FL_SetTitle("Follia - Text");
 
+    FL_FontFNT *test = FL_LoadFontFNT("data/fonts/origami-mommy.fnt");
+    if(!test) {
+        FL_Close();
+        exit(-1);
+    }
+
+    int a = test->count;
+
     FL_FontBDF* knxt_font = FL_LoadFontBDF("data/fonts/knxt.bdf");
     if(!knxt_font) {
         FL_Close();
@@ -38,10 +46,12 @@ int main() {
         }
 
         FL_ClearScreen();
-        FL_DrawText(0, 0, text, 255, FL_GetWindowWidth(), knxt_font);
+        //FL_DrawText(0, 0, text, 255, FL_GetWindowWidth(), knxt_font);
+        FL_DrawTextFNT(0, 0, text, 255, FL_GetWindowWidth(), test);
         FL_Render();
     } 
 
+    FL_FreeFontFNT(test);
     FL_FreeFontBDF(knxt_font);
     FL_Close();
     return 0;
