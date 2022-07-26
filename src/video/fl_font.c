@@ -11,19 +11,6 @@
 
 uint32_t text_color = 0x000000;
 
-struct _FL_CharBDF {
-    uint32_t id;
-  
-    // bounding box 
-    uint32_t bbw, bbh;
-    int32_t bbxoff, bbyoff;
-
-    // dwidth (distance between origin to the next character origin
-    uint32_t dwx, dwy;
-
-    uint8_t *data;
-};
-
 uint8_t hex_to_int(uint8_t n) {
     uint8_t temp;
     

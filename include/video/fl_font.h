@@ -4,7 +4,18 @@
 #include "video/fl_texture.h"
 #include <stdint.h>
 
-typedef struct _FL_CharBDF FL_CharBDF;
+typedef struct _FL_CharBDF {
+    uint32_t id;
+  
+    // bounding box 
+    uint32_t bbw, bbh;
+    int32_t bbxoff, bbyoff;
+
+    // dwidth (distance between origin to the next character origin
+    uint32_t dwx, dwy;
+
+    uint8_t *data;
+} FL_CharBDF;
 
 typedef struct {
     uint32_t char_number; // amount of characters in font

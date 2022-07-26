@@ -1,2 +1,5 @@
+# Cache from clangd autocomplete plugin for VSCodium
+.cache/
+
 build/
 compile_commands.json
