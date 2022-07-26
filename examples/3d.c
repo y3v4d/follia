@@ -183,7 +183,7 @@ int main() {
             }
         }
 
-        FL_DrawText(10, 10, fps_text, fps_text_s, FL_GetWindowWidth(), knxt);
+        FL_DrawTextBDF(10, 10, fps_text, fps_text_s, FL_GetWindowWidth(), knxt);
         FL_Render();
     }
 

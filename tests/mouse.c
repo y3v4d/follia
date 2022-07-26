@@ -46,7 +46,7 @@ int main() {
         }
 
         FL_ClearScreen();
-        FL_DrawText(10, 10, mouse_info, 128, FL_GetWindowWidth(), knxt_font);
+        FL_DrawTextBDF(10, 10, mouse_info, 128, FL_GetWindowWidth(), knxt_font);
         FL_Render();
     }
 

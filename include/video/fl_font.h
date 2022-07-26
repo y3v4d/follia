@@ -71,6 +71,6 @@ void FL_FreeFontFNT(FL_FontFNT *o);
  * max_width - text will render only in range from x to x + max_width. Additional text will be displaced to the next line.
  * font - font to use for rendering
  */
-void FL_DrawText(int x, int y, const char *text, int max_size, int max_width, FL_FontBDF *font);
+void FL_DrawTextBDF(int x, int y, const char *text, int max_size, int max_width, FL_FontBDF *font);
 void FL_DrawTextFNT(int x, int y, const char *text, int size, int max_width, FL_FontFNT *font);
 #endif

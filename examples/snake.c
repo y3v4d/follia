@@ -130,7 +130,7 @@ int main() {
             FL_DrawRect(parts[i]->x * FIELD_SIZE, parts[i]->y * FIELD_SIZE, FIELD_SIZE, FIELD_SIZE, 0, false);
         }
 
-        FL_DrawText(10, 10, fps_text, 16, FL_GetWindowWidth(), knxt_font);
+        FL_DrawTextBDF(10, 10, fps_text, 16, FL_GetWindowWidth(), knxt_font);
         FL_Render();
     }
 

@@ -253,7 +253,7 @@ int main() {
 
         FL_DrawTexture(ship_texture, player.x, player.y);
 
-        FL_DrawText(10, 10, lives_text, 16, 200, knxt_font);
+        FL_DrawTextBDF(10, 10, lives_text, 16, 200, knxt_font);
         FL_Render();
     }
 

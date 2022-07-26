@@ -32,7 +32,7 @@ int main() {
         }
 
         FL_ClearScreen();
-        FL_DrawText(10, 10, fps_text, 64, FL_GetWindowWidth(), bitocra_39);
+        FL_DrawTextBDF(10, 10, fps_text, 64, FL_GetWindowWidth(), bitocra_39);
         FL_Render();
     }
 

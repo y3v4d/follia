@@ -37,7 +37,7 @@ FL_Bool FL_InitializeLog() {
     return true;
 }
 
-void FL_WriteLog(enum FL_LogType type, const char *format, ...) {
+void FL_WriteLog(FL_LogType type, const char *format, ...) {
     if(!FL_LOG_ENABLED) return;
 
     if(!initialized) return;

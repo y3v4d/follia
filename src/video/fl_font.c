@@ -24,7 +24,18 @@ uint8_t hex_to_int(uint8_t n) {
     return temp;
 }
 
-FL_CharBDF* load_char(FILE *file) {
+int str_to_int(const char *s) {
+    int n = 0;
+
+    while(*s >= '0' && *s <= '9') {
+        n = n * 10 + (*s - '0');
+        ++s;
+    }
+
+    return n;
+}
+
+FL_CharBDF* load_char_bdf(FILE *file) {
     if(!file) {
         FL_WriteLog(FL_LOG_ERROR, "Wrong file passed!");
         
@@ -157,7 +168,7 @@ FL_FontBDF* FL_LoadFontBDF(const char *path) {
     }
 
     for(int i = 0; i < temp->char_number; ++i) {
-        temp->chars[i] = load_char(file);
+        temp->chars[i] = load_char_bdf(file);
         if(!temp->chars[i]) {
             FL_FreeFontBDF(temp);
             fclose(file);
@@ -169,17 +180,6 @@ FL_FontBDF* FL_LoadFontBDF(const char *path) {
     temp->start_char = temp->chars[0]->id;
     
     return temp;    
-}
-
-int str_to_int(const char *s) {
-    int n = 0;
-
-    while(*s >= '0' && *s <= '9') {
-        n = n * 10 + (*s - '0');
-        ++s;
-    }
-
-    return n;
 }
 
 FL_FontFNT* FL_LoadFontFNT(const char *path) {
@@ -211,18 +211,14 @@ FL_FontFNT* FL_LoadFontFNT(const char *path) {
 
             strncpy(filename, found + first, filename_size);
             filename[filename_size] = 0;
-
-            printf("Filename: %s\n", filename);
         }
 
         if((found = strstr(buffer, "size")) != NULL) {
             temp->size = str_to_int(found + 5);
-            printf("Size: %d\n", temp->size);
         }
 
         if((found = strstr(buffer, "chars count")) != NULL) {
             temp->count = str_to_int(found + 12);
-            printf("Chars count: %d\n", temp->count);
             break;
         }
     }
@@ -235,7 +231,6 @@ FL_FontFNT* FL_LoadFontFNT(const char *path) {
     char texture_path[SIZE];
     strncpy(texture_path, path, last_slash + 1);
     strncpy(texture_path + last_slash + 1, filename, filename_size + 1);
-    printf("Texture path: %s\n", texture_path);
 
     temp->texture = FL_LoadTexture(texture_path);
     if(!temp->texture) {
@@ -345,6 +340,38 @@ void FL_SetTextColor(uint32_t color) {
     else FL_WriteLog(FL_LOG_WARNING, "Cannot assign > 0xFFFFFF color to RGB storage!");
 }
 
+void FL_DrawTextBDF(int x, int y, const char *text, int size, int max_width, FL_FontBDF *font) {
+    int start_x = x;
+
+    int next_word = 0;
+    for(int i = 0; i < size && text[i] != 0; ++i) {
+        if(i == next_word && i < size - 1) { // check if word has to be moved to another line
+            // search for the next word
+            int s = i + 1;
+            while(text[s] != 0 && text[s] != ' ' && s != size -1) { s++; }
+            
+            if(x + ((s - i) * font->fbbw) >= max_width) { // don't count space for render
+                x = start_x;
+                if(i > 0) y += font->fbbh; // don't move first line if it doesn't fit
+            }
+
+            next_word = (s == size - 1 ? -1 : s + 1); // don't count end of text as another word
+        } else if(x + font->fbbw >= max_width) { // displace letters in word if they don't fit
+            if(text[i] != ' ') {
+                x = start_x;
+                y += font->fbbh;
+            } else continue; // just don't render space if it doesn't fit the line, instead of moving it to another line
+        } else if(text[i] == '\n') { // make \n function
+            x = start_x;
+            y += font->fbbh;
+
+            continue;
+        }
+
+        render_char(&x, &y, text[i], font, text_color); 
+    } 
+}
+
 void render_char_fnt(int* x, int* y, const char character, FL_FontFNT *font) {
     FL_CharFNT *picked = NULL;
     
@@ -408,36 +435,4 @@ void FL_DrawTextFNT(int x, int y, const char *text, int size, int max_width, FL_
 
         render_char_fnt(&x, &y, text[i], font);
     }
-}
-
-void FL_DrawText(int x, int y, const char *text, int size, int max_width, FL_FontBDF *font) {
-    int start_x = x;
-
-    int next_word = 0;
-    for(int i = 0; i < size && text[i] != 0; ++i) {
-        if(i == next_word && i < size - 1) { // check if word has to be moved to another line
-            // search for the next word
-            int s = i + 1;
-            while(text[s] != 0 && text[s] != ' ' && s != size -1) { s++; }
-            
-            if(x + ((s - i) * font->fbbw) >= max_width) { // don't count space for render
-                x = start_x;
-                if(i > 0) y += font->fbbh; // don't move first line if it doesn't fit
-            }
-
-            next_word = (s == size - 1 ? -1 : s + 1); // don't count end of text as another word
-        } else if(x + font->fbbw >= max_width) { // displace letters in word if they don't fit
-            if(text[i] != ' ') {
-                x = start_x;
-                y += font->fbbh;
-            } else continue; // just don't render space if it doesn't fit the line, instead of moving it to another line
-        } else if(text[i] == '\n') { // make \n function
-            x = start_x;
-            y += font->fbbh;
-
-            continue;
-        }
-
-        render_char(&x, &y, text[i], font, text_color); 
-    } 
 }

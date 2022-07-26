@@ -46,7 +46,7 @@ int main() {
         }
 
         FL_ClearScreen();
-        //FL_DrawText(0, 0, text, 255, FL_GetWindowWidth(), knxt_font);
+        FL_DrawTextBDF(0, FL_GetWindowHeight() / 2, text, 255, FL_GetWindowWidth(), knxt_font);
         FL_DrawTextFNT(0, 0, text, 255, FL_GetWindowWidth(), test);
         FL_Render();
     } 
