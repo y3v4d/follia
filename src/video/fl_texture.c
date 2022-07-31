@@ -30,7 +30,7 @@ FL_Texture* FL_LoadTexture(const char *path) {
     temp->data = (uint32_t*)malloc(size * sizeof(uint32_t));
 
     // translate raw image data to faster RGBA texture format
-    // one pixel: 0xaabbggrr
+    // one pixel: 0xaarrggbb
     uint8_t *p = data;
     for(int i = 0; i < size; ++i) {
         if(n == 1) { // GRAY
@@ -38,9 +38,9 @@ FL_Texture* FL_LoadTexture(const char *path) {
         } else if(n == 2) { // GRAY-ALPHA
             temp->data[i] = (uint32_t)(p[1] << 24 | *p << 16 | *p << 8 | *p);
         } else if(n == 3) { // RGB
-            temp->data[i] = (uint32_t)(p[2] << 16 | p[1] << 8 | p[0]);
+            temp->data[i] = (uint32_t)(p[0] << 16 | p[1] << 8 | p[2]);
         } else if(n == 4) { // RGBA
-            temp->data[i] = (uint32_t)(p[3] << 24 | p[2] << 16 | p[1] << 8 | p[0]);
+            temp->data[i] = (uint32_t)(p[3] << 24 | p[0] << 16 | p[1] << 8 | p[2]);
         }
 
         p += n;
