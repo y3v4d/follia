@@ -69,8 +69,10 @@ void FL_DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
     // fast implementation for straight lines
     if(y0 == y1) {
         int sx = (x0 < x1 ? 1 : -1);
-        while(x0 != x1) {
+        while(true) {
             _draw_point_in_range(x0, y0, color);
+
+            if(x0 == x1) break;
             x0 += sx;
         }
 
@@ -78,8 +80,10 @@ void FL_DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
     }
     if(x0 == x1) {
         int sy = (y0 < y1 ? 1 : -1);
-        while(y0 != y1) {
+        while(true) {
             _draw_point_in_range(x0, y0, color);
+
+            if(y0 == y1) break;
             y0 += sy;
         }
 
@@ -280,6 +284,6 @@ void FL_DrawNoise() {
     int range = WINDOW_WIDTH * WINDOW_HEIGHT;
 
     while(range--) {
-        *s++ = (rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255);
+        *s++ = rand() % 0xffffff;//(rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255);
     }
 }

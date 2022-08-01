@@ -69,12 +69,25 @@ int main() {
 
     int current_test = 0;
 
+    struct Rect rect = {
+        .x = FL_GetWindowWidth() >> 1,
+        .y = FL_GetWindowHeight() >> 1,
+        .w = 16,
+        .h = 8,
+        .color = 0
+    };
+
     const int fps_text_s = 64;
     char fps_text[fps_text_s];
 
     const int meassure_text_s = 64;
     char meassure_text[meassure_text_s];
     FL_Timer meassure_timer;
+
+    const int info_text_s = 64;
+    char info_text[64] = "X: - Y: - ";
+
+    int mouse_x = 0, mouse_y = 0;
 
     FL_Event event;
     while(!FL_WindowShouldClose()) {
@@ -87,6 +100,16 @@ int main() {
                     case '4': current_test = 3; break;
                     case '5': current_test = 4; break;
                     default: break;
+                }
+
+                if(current_test == 3) {
+                    if(event.key.code == 'w') {
+                        rect.w += 1;
+                        rect.h += 1;
+                    } else if(event.key.code == 's' && rect.w > 0) {
+                        rect.w -= 1;
+                        rect.h -= 1;
+                    }
                 }
             } else if(event.type == FL_EVENT_MOUSE_PRESSED) {
                 if(current_test == 2) {
@@ -101,6 +124,9 @@ int main() {
                         ++n_circles;
                     }
                 }
+            } else if(event.type == FL_EVENT_MOUSE_MOVED) {
+                mouse_x = event.mouse.x;
+                mouse_y = event.mouse.y;
             }
         }
 
@@ -125,6 +151,8 @@ int main() {
                     rects[i].vy *= -1;
                 }
             }
+        } else if(current_test == 3) {
+            snprintf(info_text, info_text_s, "X: %d Y: %d", mouse_x, mouse_y);
         }
 
         FL_StopTimer(&delta_timer);
@@ -147,6 +175,11 @@ int main() {
                 if(i > 0) FL_DrawLine(circles[i - 1]->x, circles[i - 1]->y, circles[i]->x, circles[i]->y, 0x00ff00);
                 FL_DrawCircle(circles[i]->x, circles[i]->y, circles[i]->r, circles[i]->color, true);
             }
+        } else if(current_test == 3) {
+            FL_DrawRect(rect.x, rect.y, rect.w, rect.h, rect.color, false);
+            FL_DrawTextBDF(10, 86, info_text, info_text_s, FL_GetWindowWidth(), bitocra_39);
+            FL_DrawLine(mouse_x, 0, mouse_x, FL_GetWindowHeight(), 0xffff00);
+            FL_DrawLine(0, mouse_y, FL_GetWindowWidth(), mouse_y, 0xffff00);
         }
 
         FL_DrawTextBDF(10, 10, fps_text, fps_text_s, FL_GetWindowWidth(), bitocra_39);
