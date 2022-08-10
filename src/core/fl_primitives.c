@@ -3,7 +3,8 @@
 
 #include <stdlib.h>
 
-static inline void _draw_point_in_range(int x, int y, uint32_t color) {
+inline __attribute__((always_inline)) 
+void _draw_point_in_range(int x, int y, uint32_t color) {
     if(x >= 0 && x < WINDOW_WIDTH && y >= 0 && y < WINDOW_HEIGHT) *(h_lines[y] + x) = color;
 }
 

@@ -7,3 +7,5 @@ add_test(mouse)
 add_test(text)
 add_test(timer)
 add_test(texture)
+
+target_compile_options(timer PRIVATE -O2)

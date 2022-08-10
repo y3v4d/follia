@@ -40,6 +40,10 @@ int FL_GetWindowHeight();
  */
 double FL_GetDeltaTime();
 
+double FL_GetCoreTimer(uint8_t type);
+
+void FL_SetFrameTime(double ms);
+
 /*
  * FL_SetClearColor
  * For fast implementation, you are allowed to use 8-bit color (white, black, shades of grey)

@@ -7,7 +7,7 @@ void FL_StartTimer(FL_Timer* timer) {
         return;
     }
 
-    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer->start);
+    clock_gettime(CLOCK_REALTIME, &timer->start);
 }
 
 void FL_StopTimer(FL_Timer* timer) {
@@ -16,7 +16,7 @@ void FL_StopTimer(FL_Timer* timer) {
         return;
     }
 
-    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer->end);
+    clock_gettime(CLOCK_REALTIME, &timer->end);
 
     timer->delta = (timer->end.tv_sec - timer->start.tv_sec) * 1e3 + (timer->end.tv_nsec - timer->start.tv_nsec) / 1e6;
 }

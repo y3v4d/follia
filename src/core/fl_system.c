@@ -21,7 +21,7 @@
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
 
-#define X_USE_SHM 0
+#define X_USE_SHM 1
 
 int WINDOW_WIDTH = 100, WINDOW_HEIGHT = 100;
 
@@ -43,6 +43,8 @@ FL_Bool shm_complete = true; // determinate if the shm finished its job
 Atom wm_delete_window;
 
 FL_Bool x_window_close = false; // determinate if window should be closed
+
+FL_Timer core_timers[FL_TIMER_ALL] = {0};
 
 int x_error_handler(Display *display, XErrorEvent *event) {
     char msg[256];
@@ -97,10 +99,11 @@ FL_Bool FL_Initialize(int width, int height) {
     x_screen = XDefaultScreen(x_display);
     x_visual = XDefaultVisual(x_display, x_screen);
 
-    XSetWindowAttributes x_window_attr;
-    x_window_attr.background_pixel = XBlackPixel(x_display, x_screen);
-    x_window_attr.border_pixel = XWhitePixel(x_display, x_screen);
-    x_window_attr.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ButtonMotionMask;
+    XSetWindowAttributes x_window_attr = {
+        .background_pixel = XBlackPixel(x_display, x_screen),
+        .border_pixel = XWhitePixel(x_display, x_screen),
+        .event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ButtonMotionMask
+    };
 
     FL_WriteLog(FL_LOG_INFO, "Creating window...\n");
     x_window = XCreateWindow(x_display,                               // display
@@ -125,7 +128,7 @@ FL_Bool FL_Initialize(int width, int height) {
     } else FL_WriteLog(FL_LOG_WARNING, "Couldn't allocate memory for WM_CLASS value");
 
     // WM_NAME setup
-    FL_SetTitle("X11Framework");
+    FL_SetTitle("Follia");
 
     // WM_DELETE setup
     wm_delete_window = XInternAtom(x_display, "WM_DELETE_WINDOW", False);
@@ -194,6 +197,7 @@ FL_Bool FL_Initialize(int width, int height) {
     }
 
     XMapWindow(x_display, x_window);
+    XSync(x_display, false);
 
     //XAutoRepeatOff(x_display);
 
@@ -315,22 +319,58 @@ double FL_GetDeltaTime() {
     return dt_messure.delta;
 }
 
+double FL_GetCoreTimer(uint8_t type) {
+    if(type < 0 || type > FL_TIMER_ALL) return -1;
+
+    if(type == FL_TIMER_ALL) {
+        double total = 0;
+        for(int i = 0; i < FL_TIMER_ALL; ++i) {
+            total += core_timers[i].delta;
+        }
+
+        return total;
+    } else return core_timers[type].delta;
+}
+
+long frame_time = 0;
+void FL_SetFrameTime(double ms) {
+    if(ms < 0 || ms >= 1000) return;
+
+    frame_time = ms * 1000000;
+}
+
 void FL_ClearScreen() {
+    FL_StartTimer(&core_timers[FL_TIMER_CLEAR_SCREEN]);
     if(X_USE_SHM && !shm_complete) {
         while(!XCheckIfEvent(x_display, &x_event, check_for_shm_proc, NULL)) {}
         shm_complete = true;
     }
 
-    memset(x_buffer->data, clear_color, WINDOW_WIDTH * WINDOW_HEIGHT * 4);
+    memset((void*)x_buffer->data, clear_color, WINDOW_WIDTH * WINDOW_HEIGHT * 4);
+
+    FL_StopTimer(&core_timers[FL_TIMER_CLEAR_SCREEN]);
+    FL_StartTimer(&core_timers[FL_TIMER_CLEAR_TO_RENDER]);
 }
 
 void FL_Render() {
+    FL_StopTimer(&core_timers[FL_TIMER_CLEAR_TO_RENDER]);
+    FL_StartTimer(&core_timers[FL_TIMER_RENDER]);
+
     if(X_USE_SHM) {
-        XShmPutImage(x_display, x_window, x_gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);
+        XShmPutImage(x_display, x_window, XDefaultGC(x_display, x_screen), x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, True);
         shm_complete = false;
     } else {
         XPutImage(x_display, x_window, x_gc, x_buffer, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     }
+
+    FL_StopTimer(&core_timers[FL_TIMER_RENDER]);
+    FL_StopTimer(&dt_messure);
+    
+    // sleep through the rest of the frame if limit set
+    struct timespec sleeper = { 0 };
+    sleeper.tv_sec = 0;
+    sleeper.tv_nsec = frame_time - (long)(dt_messure.delta * 1000000);
+    nanosleep(&sleeper, NULL);
 
     FL_StopTimer(&dt_messure);
     FL_StartTimer(&dt_messure);

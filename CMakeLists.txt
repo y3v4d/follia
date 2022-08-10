@@ -17,6 +17,7 @@ add_library(follia SHARED
 
 target_include_directories(follia PUBLIC include)
 target_link_libraries(follia PRIVATE -lm -lX11 -lXext)
+target_compile_options(follia PRIVATE -O2)
 
 add_subdirectory(examples)
 add_subdirectory(tests)
